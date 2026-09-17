@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --gb-ink: #1f1f1f;
+  --gb-cream: #f8f4e3;
+  --gb-cream-dark: #e8dfc0;
+  --sky-top: #8fd3f4;
+  --sky-bottom: #b8e6a1;
+  --grass: #7bc96f;
+  --hp-green: #58d068;
+  --hp-yellow: #f0c419;
+  --hp-red: #e6483c;
+}
+
+body {
+  background: #111318;
+  color: var(--gb-ink);
+  font-family: var(--font-pixel), "Courier New", monospace;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Caja estilo diálogo de GameBoy: doble borde negro/crema */
+.gb-box {
+  background: var(--gb-cream);
+  border: 3px solid var(--gb-ink);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 2px var(--gb-cream-dark),
+    2px 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.gb-box-dark {
+  background: #2b2f3a;
+  border: 3px solid #0a0b0d;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #454b5c;
+}
+
+.gb-hp-track {
+  background: #3a3a3a;
+  border: 2px solid var(--gb-ink);
+  border-radius: 3px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.gb-hp-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.battle-bg {
+  background: linear-gradient(
+    180deg,
+    var(--sky-top) 0%,
+    var(--sky-top) 45%,
+    var(--sky-bottom) 45%,
+    var(--grass) 100%
+  );
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--gb-ink),
+      0 0 0 5px #ffd23f;
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--gb-ink),
+      0 0 0 8px #ffd23f;
+  }
+}
+
+.recommended-ring {
+  animation: pulse-ring 1.4s ease-in-out infinite;
+}
+
+.pixel-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.pixel-scroll::-webkit-scrollbar-thumb {
+  background: var(--gb-ink);
+  border-radius: 3px;
+}
