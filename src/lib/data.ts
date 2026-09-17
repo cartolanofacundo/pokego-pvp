@@ -87,8 +87,26 @@ export function searchPokemon(query: string, league: LeagueKey): Pokemon[] {
   return pool.filter((p) => stripAccents(p.speciesName.toLowerCase()).includes(q));
 }
 
+/**
+ * "Rival" sin tipos, para cuando el otro lado todavía no tiene un Pokémon
+ * activo: sirve como defensor neutral (multiplicador x1 siempre) al calcular
+ * el moveset, así se ven los ataques sin badges de efectividad engañosos.
+ */
+export const NEUTRAL_OPPONENT: Pokemon = {
+  speciesId: "__neutral__",
+  speciesName: "",
+  dex: 0,
+  types: ["none", "none"],
+  shadow: false,
+  fastMoves: [],
+  chargedMoves: [],
+  eliteMoves: [],
+  leagues: {},
+};
+
 export function displayName(p: Pokemon): string {
-  return p.shadow ? `${p.speciesName} (Shadow)` : p.speciesName;
+  // PvPoke ya incluye "(Shadow)" en speciesName para las formas Shadow.
+  return p.speciesName;
 }
 
 /** Movimiento rápido y 2 cargados recomendados por PvPoke para esa liga (o el pool completo si no hay ranking). */

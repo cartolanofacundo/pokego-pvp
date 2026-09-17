@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getPokemon } from "./data";
-import { analyzeMoveset, effectTier } from "./recommend";
+import { analyzeMoveset, effectTier, formatMult } from "./recommend";
 
 describe("effectTier", () => {
   it("distingue los 5 multiplicadores discretos posibles", () => {
@@ -9,6 +9,16 @@ describe("effectTier", () => {
     expect(effectTier(1)).toBe("neutral");
     expect(effectTier(0.625)).toBe("resisted");
     expect(effectTier(0.390625)).toBe("double-resisted");
+  });
+});
+
+describe("formatMult", () => {
+  it("formatea los 5 multiplicadores, incluso con ruido de punto flotante (1.6*1.6)", () => {
+    expect(formatMult(1.6 * 1.6)).toBe("×2.56"); // 2.5600000000000005 en JS
+    expect(formatMult(1.6)).toBe("×1.6");
+    expect(formatMult(1)).toBe("×1.0");
+    expect(formatMult(0.625)).toBe("×0.6");
+    expect(formatMult(0.390625)).toBe("×0.4");
   });
 });
 

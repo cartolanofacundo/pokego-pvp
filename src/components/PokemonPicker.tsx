@@ -27,7 +27,7 @@ export function PokemonPicker({
   const results = useMemo(() => searchPokemon(query, league).slice(0, 40), [query, league]);
 
   return (
-    <div className="gb-box p-2 w-full max-w-sm">
+    <div className="w-full max-w-sm">
       <div className="flex gap-1 mb-2">
         <input
           ref={inputRef}
@@ -45,7 +45,7 @@ export function PokemonPicker({
           </button>
         )}
       </div>
-      <div className="max-h-64 overflow-y-auto pixel-scroll flex flex-col gap-1">
+      <div className="max-h-96 overflow-y-auto pixel-scroll flex flex-col gap-1">
         {results.length === 0 && (
           <div className="text-[9px] text-neutral-500 text-center py-2">
             Sin resultados

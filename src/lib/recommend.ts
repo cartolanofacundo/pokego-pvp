@@ -34,6 +34,16 @@ export const EFFECT_LABEL: Record<EffectTier, string> = {
   "double-resisted": "Muy poco efectivo",
 };
 
+/**
+ * "×1.6", "×2.56", "×0.6", "×0.4" — para mostrar el multiplicador exacto en
+ * los badges. Los multiplicadores vienen de productos de punto flotante
+ * (1.6*1.6 da 2.5600000000000005), así que comparamos con un umbral en vez
+ * de igualdad exacta contra 2.56.
+ */
+export function formatMult(mult: number): string {
+  return mult > 2 ? `×${mult.toFixed(2)}` : `×${mult.toFixed(1)}`;
+}
+
 export interface MoveScore {
   moveId: string;
   name: string;
