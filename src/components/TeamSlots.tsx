@@ -42,7 +42,7 @@ export function TeamSlots({
                 } ${i === highlightIndex && i !== activeIndex ? "recommended-ring" : ""}`}
                 title={displayName(p)}
               >
-                <PokemonSprite pokemon={p} facing="front" size={44} />
+                <PokemonSprite key={p.speciesId} pokemon={p} facing="front" size={44} />
                 <span className="text-[7px] text-neutral-200 truncate w-full text-center">
                   {p.speciesName}
                 </span>

@@ -66,7 +66,7 @@ function SpriteColumn({ pokemon, facing }: { pokemon: Pokemon; facing: "front" |
   return (
     <div className="flex flex-col items-center gap-1">
       <TypeChips types={pokemon.types} size="sm" />
-      <PokemonSprite pokemon={pokemon} facing={facing} size={144} />
+      <PokemonSprite key={pokemon.speciesId} pokemon={pokemon} facing={facing} size={144} />
       <span className="text-[9px] font-bold">{pokemon.speciesName}</span>
     </div>
   );
