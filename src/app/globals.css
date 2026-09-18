@@ -31,8 +31,9 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Lienzo: 1920×1080 fijo, escalado para llenar la ventana (ver Viewport.tsx). */
-html, body { height: 100%; overflow: hidden; }
+/* Lienzo fluido, mínimo 1440×810 (ver Viewport.tsx). Por debajo: scroll. */
+html, body { height: 100%; }
+body { overflow: auto; }
 
 button, input, a { font-family: inherit; }
 button { cursor: pointer; }
@@ -180,15 +181,43 @@ button:focus:not(:focus-visible) { outline: none; }
   text-overflow: ellipsis;
 }
 
-/* Caja de stats */
+/* Caja de stats: 600 px de diseño; en la cancha más angosta (1440) cede hasta 520. */
 .stats {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 600px;
+  flex: 0 1 600px;
+  min-width: 520px;
   padding: 22px 24px 24px;
-  flex-shrink: 0;
   background: rgba(255,255,255,0.045);
+}
+
+/* Filas de la cancha: la rival ocupa desde el encabezado hasta el horizonte, la
+   propia desde el horizonte hasta el pie. Los Pokémon se apoyan en el piso de su
+   fila; si la ventana es baja, el sprite se achica para entrar. */
+.court { position: relative; flex-grow: 1; min-width: 0; }
+.court__row {
+  position: absolute; left: 0; right: 0;
+  display: flex; align-items: center;
+}
+.court__row--rival { top: 0; height: calc(var(--h) * 0.47 - 60px); }
+.court__row--vos { bottom: 0; height: calc(var(--h) * 0.53 - 20px); }
+.stage { position: relative; flex: 0 1 auto; height: 100%; }
+.stage--rival { width: 500px; min-width: 300px; margin-right: -180px; }
+.stage--vos { width: 610px; min-width: 300px; margin-left: -180px; }
+.stage__img {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: auto; object-fit: contain; object-position: center bottom;
+}
+/* 410 y 545 px a 1080 de alto; crecen con la ventana hasta un 25 % más y se
+   achican si la fila no los deja entrar. */
+.stage__img--rival { bottom: 28px; height: min(calc(var(--h) * 0.3796), calc(100% - 40px), 512px); max-width: 100%; }
+.stage__img--vos { bottom: 30px; height: min(calc(var(--h) * 0.5046), calc(100% - 44px), 681px); max-width: 100%; }
+
+/* Ventanas bajas: filas de ataque más compactas para que la caja entre en su fila. */
+@media (max-height: 999px) {
+  .move-row { height: 52px; }
+  .stats { padding: 18px 24px 20px; }
 }
 .stats--rival { margin-left: 46px; clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px); }
 .stats--vos { margin-right: 46px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%); }
@@ -228,7 +257,7 @@ button:focus:not(:focus-visible) { outline: none; }
 .stats__divider { height: 1px; background: rgba(255,255,255,0.10); margin: 16px 0 4px; }
 
 /* Conector caja → plataforma */
-.connector { display: flex; align-items: center; flex-grow: 1; min-width: 0; }
+.connector { display: flex; align-items: center; flex: 1 0 40px; min-width: 40px; }
 .connector__tick { width: 2px; height: 28px; background: rgba(255,255,255,0.42); flex-shrink: 0; }
 .connector__line { height: 2px; flex-grow: 1; }
 .connector__line--rival { background: linear-gradient(90deg, rgba(255,255,255,0.42) 0%, rgba(255,190,190,0.30) 100%); }

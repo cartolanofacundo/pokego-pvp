@@ -248,7 +248,7 @@ export default function Home() {
 
   return (
     <Viewport>
-    <main style={{ position: "relative", width: 1920, height: 1080, overflow: "hidden" }}>
+    <main style={{ position: "relative", width: "100%", height: "var(--h)", overflow: "hidden" }}>
       {screen === "config" ? (
         <ConfigScreen
           shortcuts={shortcuts}

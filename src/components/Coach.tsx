@@ -1,14 +1,20 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { ActionId, Combo } from "@/lib/shortcuts";
 import { comboLabel } from "@/lib/shortcuts";
 
 /**
  * Recorrido guiado (Coach-1 a Coach-6). Cada paso recorta un área real de
  * la pantalla con un box-shadow gigante y apoya la tarjeta con una flechita
- * del lado del foco. Posiciones exactas de las mesas de trabajo.
+ * del lado del foco. El área se mide en el DOM (atributo `data-coach` del
+ * elemento enfocado) y se expande 14 px, así funciona en cualquier
+ * resolución; los desplazamientos de la tarjeta respecto del foco son los de
+ * las mesas de trabajo.
  */
 interface StepDef {
-  focus: { left: number; top: number; width: number; height: number };
-  card: { left: number; top: number };
+  target: string;
+  pad: number;
   arrow: "left" | "right" | "top";
   title: string;
   text: string;
@@ -17,51 +23,60 @@ interface StepDef {
 
 export const COACH_STEPS: StepDef[] = [
   {
-    focus: { left: 1570, top: 525, width: 316, height: 402 },
-    card: { left: 1160, top: 600 },
+    target: "ally-rail",
+    pad: 14,
     arrow: "right",
     title: "Tu equipo, una sola vez",
     text: "Cargá tus tres Pokémon. Quedan guardados entre combates, así la próxima vez arrancás directo.",
     shortcut: { action: "addAlly", label: "AGREGAR ALIADO" },
   },
   {
-    focus: { left: 34, top: 153, width: 316, height: 402 },
-    card: { left: 386, top: 215 },
+    target: "rival-rail",
+    pad: 14,
     arrow: "left",
     title: "Los rivales, sobre la marcha",
     text: "Al equipo de enfrente lo vas cargando durante el combate, a medida que te los muestran.",
     shortcut: { action: "addRival", label: "AGREGAR RIVAL" },
   },
   {
-    focus: { left: 884, top: 578, width: 628, height: 408 },
-    card: { left: 474, top: 650 },
+    target: "vos-stats",
+    pad: 14,
     arrow: "right",
     title: "Tus ataques",
     text: "Cada ataque muestra su energía y sus turnos de carga. Mientras no haya rival en campo ves el poder base; apenas cargues uno, ese número pasa a ser cuánto le pegás.",
   },
   {
-    focus: { left: 408, top: 110, width: 628, height: 392 },
-    card: { left: 1074, top: 180 },
+    target: "rival-stats",
+    pad: 14,
     arrow: "left",
     title: "Lo que te pega a vos",
     text: "Verde es a tu favor y rojo en tu contra, de los dos lados. El triángulo marca el ataque rival que te hace daño doble.",
   },
   {
-    focus: { left: 1570, top: 525, width: 316, height: 402 },
-    card: { left: 1160, top: 600 },
+    target: "ally-rail",
+    pad: 14,
     arrow: "right",
     title: "A quién mandar",
     text: "El punto de color de cada Pokémon del banco te dice si le gana, empata o pierde contra el que está enfrente ahora mismo.",
   },
   {
-    focus: { left: 1432, top: 6, width: 452, height: 52 },
-    card: { left: 1420, top: 86 },
+    target: "header-controls",
+    pad: 6,
     arrow: "top",
     title: "Liga y atajos",
     text: "Cambiá de liga cuando cambies de formato. Todos los atajos se editan desde la rueda dentada, con la tecla que te quede cómoda.",
     shortcut: { action: "openConfig", label: "ABRIR CONFIGURACIÓN" },
   },
 ];
+
+const CARD_W = 380;
+
+interface Box {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
 
 export function Coach({
   step,
@@ -76,26 +91,52 @@ export function Coach({
 }) {
   const def = COACH_STEPS[step - 1];
   const last = step === COACH_STEPS.length;
-  const arrowStyle: React.CSSProperties =
+  const [focus, setFocus] = useState<Box | null>(null);
+
+  useEffect(() => {
+    const measure = () => {
+      const el = document.querySelector<HTMLElement>(`[data-coach="${def.target}"]`);
+      const host = document.querySelector<HTMLElement>("main");
+      if (!el || !host) return;
+      const r = el.getBoundingClientRect();
+      const h = host.getBoundingClientRect();
+      setFocus({
+        left: Math.round(r.left - h.left - def.pad),
+        top: Math.round(r.top - h.top - def.pad),
+        width: Math.round(r.width + def.pad * 2),
+        height: Math.round(r.height + def.pad * 2),
+      });
+    };
+    // Se mide después del commit (rAF) para que el estado de muestra ya esté en el DOM.
+    const id = requestAnimationFrame(measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(id);
+      window.removeEventListener("resize", measure);
+    };
+  }, [def]);
+
+  if (!focus) return null;
+
+  const card: React.CSSProperties =
     def.arrow === "right"
-      ? { right: -8, top: 52 }
+      ? { left: focus.left - 30 - CARD_W, top: focus.top + 75 }
       : def.arrow === "left"
-        ? { left: -8, top: 52 }
-        : { left: 46, top: -8 };
+        ? { left: focus.left + focus.width + 36, top: focus.top + 66 }
+        : { left: focus.left - 12, top: focus.top + focus.height + 28 };
+  const arrowStyle: React.CSSProperties =
+    def.arrow === "right" ? { right: -8, top: 52 } : def.arrow === "left" ? { left: -8, top: 52 } : { left: 46, top: -8 };
 
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 60 }} role="dialog" aria-modal="true" aria-labelledby="coach-title">
       <div
         style={{
-          position: "absolute", ...def.focus,
+          position: "absolute", ...focus,
           boxShadow: "0 0 0 9999px rgba(6,7,9,0.84), inset 0 0 0 2px rgba(255,255,255,0.38)",
           pointerEvents: "none",
         }}
       />
-      <div
-        className="panel panel--cut-18"
-        style={{ position: "absolute", ...def.card, width: 380, display: "flex", flexDirection: "column", padding: 22 }}
-      >
+      <div className="panel panel--cut-18" style={{ position: "absolute", ...card, width: CARD_W, display: "flex", flexDirection: "column", padding: 22 }}>
         <span style={{ position: "absolute", width: 16, height: 16, background: "#12151A", transform: "rotate(45deg)", ...arrowStyle }} />
         <span className="label" style={{ fontSize: 10.5, color: "#8B94A0" }}>PASO {step} DE {COACH_STEPS.length}</span>
         <span id="coach-title" style={{ fontSize: 21, fontWeight: 600, letterSpacing: "-0.02em", marginTop: 10 }}>{def.title}</span>

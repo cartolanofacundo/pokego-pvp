@@ -65,7 +65,7 @@ export function BattleScreen({
   return (
     <div
       style={{
-        position: "relative", width: 1920, height: 1080, display: "flex", flexDirection: "column",
+        position: "relative", width: "100%", height: "var(--h)", display: "flex", flexDirection: "column",
         background: "#080A0D", color: "#F2F3F5", overflow: "hidden",
       }}
     >
@@ -83,8 +83,8 @@ export function BattleScreen({
           onAdd={(i) => onAdd("rival", i)}
         />
 
-        <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+        <div className="court">
+          <div className="court__row court__row--rival">
             {rival ? (
               <StatsBox side="rival" pokemon={rival} opponent={ally} league={league} />
             ) : (
@@ -94,9 +94,7 @@ export function BattleScreen({
             <Stage side="rival" pokemon={rival} />
           </div>
 
-          <div style={{ flexGrow: 1, minHeight: 0 }} />
-
-          <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <div className="court__row court__row--vos">
             <Stage side="ally" pokemon={ally} />
             <Connector side="ally" dim={ally === null} />
             {ally ? (

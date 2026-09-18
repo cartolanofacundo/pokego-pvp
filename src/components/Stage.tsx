@@ -3,9 +3,10 @@ import { withBasePath } from "@/lib/basePath";
 
 /**
  * Plataforma + sprite de campo. Dos anillos elípticos del color del campo,
- * sombra de contacto y el sprite anclado al piso. El propio va más grande
- * (545 px) que el rival (410 px): está adelante, y esa diferencia da la
- * profundidad. Vacío: anillos punteados y un "?".
+ * sombra de contacto y el sprite anclado al piso de su fila. El propio va
+ * más grande (545 px) que el rival (410 px): está adelante, y esa diferencia
+ * da la profundidad. En ventanas bajas el sprite se achica para entrar en la
+ * fila. Vacío: anillos punteados y un "?".
  *
  * Sprites de campo: GIF animados de Pokémon Showdown (frente y espalda),
  * decisión del dueño del proyecto. Sin `pixelated`: no son pixel art.
@@ -19,7 +20,7 @@ function RivalStage({ pokemon }: { pokemon: Pokemon | null }) {
   const dashed = pokemon === null;
   const ring = dashed ? "dashed" : "solid";
   return (
-    <div style={{ position: "relative", width: 500, height: 448, marginRight: -180, flexShrink: 0 }}>
+    <div className="stage stage--rival" data-coach="rival-stage">
       <div
         style={{
           position: "absolute", bottom: 4, left: "50%", width: 430, height: 92, transform: "translateX(-50%)",
@@ -45,13 +46,10 @@ function RivalStage({ pokemon }: { pokemon: Pokemon | null }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={pokemon.speciesId}
+            className="stage__img stage__img--rival"
             src={withBasePath(`/sprites/${pokemon.speciesId}.gif`)}
             alt={pokemon.speciesName}
-            style={{
-              position: "absolute", bottom: 28, left: "50%", width: 410, height: 410, transform: "translateX(-50%)",
-              objectFit: "contain", objectPosition: "center bottom",
-              filter: "drop-shadow(0 24px 24px rgba(0,0,0,0.62))",
-            }}
+            style={{ filter: "drop-shadow(0 24px 24px rgba(0,0,0,0.62))" }}
           />
         </>
       ) : (
@@ -75,7 +73,7 @@ function AllyStage({ pokemon }: { pokemon: Pokemon | null }) {
   const dashed = pokemon === null;
   const ring = dashed ? "dashed" : "solid";
   return (
-    <div style={{ position: "relative", width: 610, height: 552, marginLeft: -180, flexShrink: 0 }}>
+    <div className="stage stage--vos" data-coach="vos-stage">
       <div
         style={{
           position: "absolute", bottom: 4, left: "50%", width: 552, height: 116, transform: "translateX(-50%)",
@@ -101,13 +99,10 @@ function AllyStage({ pokemon }: { pokemon: Pokemon | null }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={pokemon.speciesId}
+            className="stage__img stage__img--vos"
             src={withBasePath(`/sprites/back/${pokemon.speciesId}.gif`)}
             alt={`${pokemon.speciesName} de espaldas`}
-            style={{
-              position: "absolute", bottom: 30, left: "50%", width: 545, height: 545, transform: "translateX(-50%)",
-              objectFit: "contain", objectPosition: "center bottom",
-              filter: "drop-shadow(0 22px 22px rgba(0,0,0,0.66))",
-            }}
+            style={{ filter: "drop-shadow(0 22px 22px rgba(0,0,0,0.66))" }}
           />
         </>
       ) : (

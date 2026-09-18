@@ -1,6 +1,9 @@
 // Pista de combate: campos rival/propio, banda de sombra, horizonte,
 // scanline, viñeta, marcas en L y ficha VS. Todo decorativo (pointer-events: none).
-// Medidas de Main.dc.html.
+// El horizonte va al 47 % del alto del lienzo (508/1080 en el diseño) y se
+// apaga a 336 px de cada borde, antes de tocar los rieles (48 + 288).
+
+const HORIZON = "calc(var(--h) * 0.47)";
 
 export function Track() {
   const mark = (style: React.CSSProperties) => (
@@ -10,34 +13,34 @@ export function Track() {
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
       <div
         style={{
-          position: "absolute", left: 0, right: 0, top: 0, height: 508,
+          position: "absolute", left: 0, right: 0, top: 0, height: HORIZON,
           background:
             "radial-gradient(900px 520px at 68% 24%, rgba(255,92,92,0.11) 0%, rgba(255,92,92,0) 66%), linear-gradient(180deg, #0F0A0B 0%, #1A1012 100%)",
         }}
       />
       <div
         style={{
-          position: "absolute", left: 0, right: 0, top: 508, bottom: 0,
+          position: "absolute", left: 0, right: 0, top: HORIZON, bottom: 0,
           background:
             "radial-gradient(900px 520px at 32% 76%, rgba(92,152,236,0.14) 0%, rgba(92,152,236,0) 66%), linear-gradient(180deg, #0B1017 0%, #111D2B 100%)",
         }}
       />
       <div
         style={{
-          position: "absolute", left: 0, right: 0, top: 398, height: 200,
+          position: "absolute", left: 0, right: 0, top: `calc(${HORIZON} - 110px)`, height: 200,
           background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0) 100%)",
         }}
       />
       <div
         style={{
-          position: "absolute", left: 336, right: 336, top: 500, height: 16,
+          position: "absolute", left: 336, right: 336, top: `calc(${HORIZON} - 8px)`, height: 16,
           background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0) 100%)",
           filter: "blur(5px)",
         }}
       />
       <div
         style={{
-          position: "absolute", left: 336, right: 336, top: 507, height: 2,
+          position: "absolute", left: 336, right: 336, top: `calc(${HORIZON} - 1px)`, height: 2,
           background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0) 100%)",
         }}
       />
@@ -51,7 +54,7 @@ export function Track() {
       <div
         style={{
           position: "absolute", inset: 0,
-          background: "radial-gradient(1400px 780px at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.45) 100%)",
+          background: "radial-gradient(73% 72% at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.45) 100%)",
         }}
       />
 
@@ -66,7 +69,7 @@ export function Track() {
 
       <span
         style={{
-          position: "absolute", left: "50%", top: 493, transform: "translateX(-50%)",
+          position: "absolute", left: "50%", top: `calc(${HORIZON} - 15px)`, transform: "translateX(-50%)",
           display: "flex", alignItems: "center", gap: 14,
         }}
       >

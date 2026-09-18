@@ -28,10 +28,15 @@ export function Rail({
       </span>
 
       <div
+        data-coach={isRival ? "rival-rail" : "ally-rail"}
         style={{
           display: "flex", flexDirection: "column", gap: 10,
-          marginTop: isRival ? 89 : "auto",
-          marginBottom: isRival ? 0 : 147,
+          // Anclados a su borde (89 arriba / 147 abajo a 1080 de alto), pero sin
+          // cruzar el horizonte más de lo que cruzan en el diseño (33 px el
+          // rival por debajo, 31 px el propio por debajo): en ventanas bajas los
+          // márgenes ceden para que las fichas no invadan el campo contrario.
+          marginTop: isRival ? "min(89px, calc(var(--h) * 0.47 - 419px))" : "auto",
+          marginBottom: isRival ? 0 : "min(147px, calc(var(--h) * 0.53 - 425px))",
         }}
       >
         {team.map((p, i) =>

@@ -46,7 +46,7 @@ export function ConfigScreen({
   return (
     <div
       style={{
-        position: "relative", width: 1920, height: 1080, display: "flex", flexDirection: "column",
+        position: "relative", width: "100%", height: "var(--h)", display: "flex", flexDirection: "column",
         background: "radial-gradient(760px 520px at 78% 8%, rgba(160,174,186,0.06), rgba(160,174,186,0) 62%), #080A0D",
         color: "#F2F3F5", overflow: "hidden",
       }}

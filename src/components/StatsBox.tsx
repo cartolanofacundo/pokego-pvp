@@ -33,7 +33,7 @@ export function StatsBox({
   const weak = weaknessesTop3(pokemon.types);
 
   return (
-    <div className={`stats ${side === "rival" ? "stats--rival" : "stats--vos"}`}>
+    <div className={`stats ${side === "rival" ? "stats--rival" : "stats--vos"}`} data-coach={side === "rival" ? "rival-stats" : "vos-stats"}>
       <span className={side === "rival" ? "stats__edge--rival" : "stats__edge--vos"} />
 
       <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
