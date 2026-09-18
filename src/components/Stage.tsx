@@ -21,7 +21,7 @@ import { withBasePath } from "@/lib/basePath";
  * luz, no de un borde duro.
  *
  * Movimiento: el sprite entra desde su lado (220 ms) y el anterior sale en
- * 120 ms mientras el nuevo entra; en campo respira (el único bucle).
+ * 120 ms mientras el nuevo entra. Sin respiración: los GIF ya se mueven solos.
  */
 export function Stage({ side, pokemon }: { side: "rival" | "ally"; pokemon: Pokemon | null }) {
   if (side === "rival") return <RivalStage pokemon={pokemon} />;
@@ -70,7 +70,7 @@ function FieldSprite({ side, pokemon }: { side: "rival" | "ally"; pokemon: Pokem
         <span key={current.speciesId} className={`stage__sprite stage__sprite--${cls} stage__sprite--in`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            className={`stage__img stage__img--breath ${side === "ally" ? "stage__img--breath-late" : ""}`}
+            className="stage__img"
             src={src(current)}
             alt={side === "rival" ? current.speciesName : `${current.speciesName} de espaldas`}
             style={{ filter: light }}

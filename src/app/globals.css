@@ -414,8 +414,8 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* ---------- Movimiento ----------
    Nada supera 260 ms salvo la alerta (pulsa dos veces y se queda fija). La
-   salida es la mitad de la entrada. Nada en bucle salvo la respiración del
-   sprite en campo. El escenario (horizonte, campos, scanline, marcas) no se
+   salida es la mitad de la entrada. Nada en bucle: los GIF de campo ya se
+   mueven solos. El escenario (horizonte, campos, scanline, marcas) no se
    anima. */
 .btn, .card, .search-row, .cfg-row, .type-chip {
   transition: background-color 100ms var(--ease), color 100ms var(--ease), box-shadow 100ms var(--ease);
@@ -445,11 +445,6 @@ button:focus:not(:focus-visible) { outline: none; }
 /* el punto del semáforo larga un anillo, una sola vez */
 @keyframes pulsoPunto { from { box-shadow: 0 0 0 0 currentColor; } to { box-shadow: 0 0 0 9px transparent; } }
 
-/* respiración del sprite en campo: el único bucle, desfasada entre los dos */
-@keyframes respira { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
-.stage__img--breath { animation: respira 3.6s ease-in-out infinite; }
-.stage__img--breath-late { animation-delay: 0.8s; }
-
 /* la alerta pulsa dos veces y se queda fija */
 @keyframes alerta { 0% { opacity: 0; transform: scale(.8); } 20% { opacity: 1; transform: scale(1); } 40% { opacity: .55; } 60% { opacity: 1; } 80% { opacity: .55; } 100% { opacity: 1; } }
 
@@ -464,7 +459,7 @@ button:focus:not(:focus-visible) { outline: none; }
 @media (prefers-reduced-motion: reduce) {
   .stage__sprite--in, .stats--in, .move-row--in, .card, .panel { animation-name: soloAparece; }
   .stage__sprite--out { animation-name: soloDesvanece; }
-  .stage__img--breath, .mult--changed, .card__dot--pulse { animation: none; }
+  .mult--changed, .card__dot--pulse { animation: none; }
   .alert-in { animation-name: alertaOpacidad; }
 }
 
