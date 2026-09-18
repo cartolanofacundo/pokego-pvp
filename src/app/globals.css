@@ -265,6 +265,9 @@ button:focus:not(:focus-visible) { outline: none; }
 /* Conector caja → plataforma */
 /* 202 px a 1920 de ancho (la distancia del diseño); cede hasta 40 en la cancha más angosta. */
 .connector { display: flex; align-items: center; flex: 0 1 202px; min-width: 40px; }
+/* Aire entre el rombo y el Pokémon: el conector no toca el escenario. */
+.court__row--rival .connector { margin-right: 24px; }
+.court__row--vos .connector { margin-left: 24px; }
 .connector__tick { width: 2px; height: 28px; background: rgba(255,255,255,0.62); flex-shrink: 0; }
 .connector__line { height: 2px; flex-grow: 1; }
 .connector__line--rival { background: linear-gradient(90deg, rgba(255,255,255,0.62) 0%, rgba(255,190,190,0.30) 100%); }
