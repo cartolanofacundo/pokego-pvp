@@ -20,6 +20,8 @@
   --font-display: 'Bricolage Grotesque', 'Helvetica Neue', sans-serif;
   --font-ui: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  /* Curva única del movimiento (artboard Movimiento). */
+  --ease: cubic-bezier(.2, .8, .2, 1);
 }
 
 * { box-sizing: border-box; }
@@ -129,7 +131,9 @@ button:focus:not(:focus-visible) { outline: none; }
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
   line-height: 1;
+  transition: color 140ms var(--ease);
 }
+.mult--changed { animation: valorCambia 140ms var(--ease); }
 .mult--good { color: var(--green); }
 .mult--bad { color: var(--red); }
 .mult--neutral { color: var(--neutral); }
@@ -195,6 +199,11 @@ button:focus:not(:focus-visible) { outline: none; }
      borde y se lee como una mancha; la línea le devuelve el límite. */
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.11);
 }
+/* La caja sigue al sprite 60 ms después; las filas, de a 40 ms. */
+.stats--in.stats--rival { animation: entraCaja 180ms var(--ease) 60ms both; }
+.stats--in.stats--vos { animation: entraCajaPropio 180ms var(--ease) 60ms both; }
+.move-row--in { animation: fichaEntra 160ms var(--ease) both; animation-delay: calc(100ms + var(--i, 0) * 40ms); }
+.alert-in { display: inline-flex; animation: alerta 1000ms ease-in-out both; }
 
 /* Filas de la cancha: la rival ocupa desde el encabezado hasta el horizonte, la
    propia desde el horizonte hasta el pie. Los Pokémon se apoyan en el piso de su
@@ -211,14 +220,12 @@ button:focus:not(:focus-visible) { outline: none; }
 .stage { position: relative; flex: 0 1 auto; height: 100%; }
 .stage--rival { width: 500px; min-width: 260px; margin-right: -180px; }
 .stage--vos { width: 610px; min-width: 260px; margin-left: -180px; }
-.stage__img {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  width: auto; object-fit: contain; object-position: center bottom;
-}
+.stage__sprite { position: absolute; left: 50%; transform: translateX(-50%); max-width: 100%; }
 /* 410 y 545 px a 1080 de alto; crecen con la ventana hasta un 25 % más y se
    achican si la fila no los deja entrar. */
-.stage__img--rival { bottom: 28px; height: min(calc(var(--h) * 0.3796), calc(100% - 40px), 512px); max-width: 100%; }
-.stage__img--vos { bottom: 30px; height: min(calc(var(--h) * 0.5046), calc(100% - 44px), 681px); max-width: 100%; }
+.stage__sprite--rival { bottom: 28px; height: min(calc(var(--h) * 0.3796), calc(100% - 40px), 512px); }
+.stage__sprite--vos { bottom: 30px; height: min(calc(var(--h) * 0.5046), calc(100% - 44px), 681px); }
+.stage__img { display: block; height: 100%; width: auto; max-width: 100%; object-fit: contain; object-position: center bottom; }
 
 /* Ventanas bajas: filas de ataque más compactas para que la caja entre en su fila. */
 @media (max-height: 999px) {
@@ -236,6 +243,7 @@ button:focus:not(:focus-visible) { outline: none; }
   background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.52) 100%);
 }
 .stats--empty {
+  animation: velo 120ms var(--ease) both;
   justify-content: center;
   gap: 14px;
   height: 300px;
@@ -278,8 +286,9 @@ button:focus:not(:focus-visible) { outline: none; }
 .connector--dim .connector__line--vos { background: linear-gradient(90deg, rgba(190,215,245,0.08) 0%, rgba(255,255,255,0.14) 100%); }
 .connector--dim .connector__diamond { background: rgba(255,255,255,0.18) !important; }
 
-/* Fichas de equipo (118 px) */
+/* Fichas de equipo (118 px). Entran con opacidad + escala, sin desplazamiento. */
 .card {
+  animation: fichaEntra 160ms var(--ease) both;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -299,8 +308,9 @@ button:focus:not(:focus-visible) { outline: none; }
 .card__sprite { width: 84px; height: 84px; image-rendering: pixelated; flex-shrink: 0; }
 .card__name { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card__status { display: flex; align-items: center; gap: 6px; }
-.card__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.card__status-text { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.09em; }
+.card__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; transition: background-color 200ms var(--ease); }
+.card__dot--pulse { animation: pulsoPunto 240ms var(--ease) both; }
+.card__status-text { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.09em; transition: color 200ms var(--ease); }
 .card--empty {
   justify-content: center;
   gap: 10px;
@@ -346,6 +356,7 @@ button:focus:not(:focus-visible) { outline: none; }
 /* Tarjeta modal (onboarding, recorrido, buscador, edición de atajo): superficie #12151A, esquina cortada, filo de luz */
 .panel {
   position: relative;
+  animation: panelEntra 120ms var(--ease) both;
   background: var(--surface);
   box-shadow: 0 48px 130px rgba(0,0,0,0.72), inset 0 0 0 1px rgba(255,255,255,0.09);
 }
@@ -356,7 +367,7 @@ button:focus:not(:focus-visible) { outline: none; }
   background: linear-gradient(90deg, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.05) 100%);
 }
 
-.veil { position: absolute; inset: 0; background: rgba(6,7,9,0.72); }
+.veil { position: absolute; inset: 0; background: rgba(6,7,9,0.72); animation: velo 120ms var(--ease) both; }
 
 /* Lector de pantalla */
 .sr-only {
@@ -400,6 +411,62 @@ button:focus:not(:focus-visible) { outline: none; }
 .cfg-row__label { font-size: 16.5px; font-weight: 500; letter-spacing: -0.01em; flex-grow: 1; min-width: 0; }
 .cfg-row .kbd { height: 28px; padding: 0 11px; border-radius: 7px; background: rgba(255,255,255,0.08); font-size: 12.5px; color: #DDE2E8; }
 .cfg-row--fixed .kbd { background: rgba(255,255,255,0.05); color: var(--ink-3); }
+
+/* ---------- Movimiento ----------
+   Nada supera 260 ms salvo la alerta (pulsa dos veces y se queda fija). La
+   salida es la mitad de la entrada. Nada en bucle salvo la respiración del
+   sprite en campo. El escenario (horizonte, campos, scanline, marcas) no se
+   anima. */
+.btn, .card, .search-row, .cfg-row, .type-chip {
+  transition: background-color 100ms var(--ease), color 100ms var(--ease), box-shadow 100ms var(--ease);
+}
+
+/* entra el Pokémon: desde su propio lado (el translateX(-50%) es el centrado) */
+@keyframes entraRival  { from { opacity: 0; transform: translateX(calc(-50% + 34px)) scale(.97); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes entraPropio { from { opacity: 0; transform: translateX(calc(-50% - 34px)) scale(.97); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes saleRival   { from { opacity: 1; transform: translateX(-50%); } to { opacity: 0; transform: translateX(calc(-50% + 34px)); } }
+@keyframes salePropio  { from { opacity: 1; transform: translateX(-50%); } to { opacity: 0; transform: translateX(calc(-50% - 34px)); } }
+.stage__sprite--in.stage__sprite--rival { animation: entraRival 220ms var(--ease) both; }
+.stage__sprite--in.stage__sprite--vos { animation: entraPropio 220ms var(--ease) both; }
+.stage__sprite--out { pointer-events: none; }
+.stage__sprite--out.stage__sprite--rival { animation: saleRival 120ms var(--ease) both; }
+.stage__sprite--out.stage__sprite--vos { animation: salePropio 120ms var(--ease) both; }
+
+/* la caja de stats sigue al sprite; la propia entra desde abajo */
+@keyframes entraCaja       { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes entraCajaPropio { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* un número que cambia de verdad */
+@keyframes valorCambia { 0% { transform: scale(1); } 45% { transform: scale(1.09); } 100% { transform: scale(1); } }
+
+/* ficha del riel o fila que entra: sin desplazamiento */
+@keyframes fichaEntra { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+
+/* el punto del semáforo larga un anillo, una sola vez */
+@keyframes pulsoPunto { from { box-shadow: 0 0 0 0 currentColor; } to { box-shadow: 0 0 0 9px transparent; } }
+
+/* respiración del sprite en campo: el único bucle, desfasada entre los dos */
+@keyframes respira { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+.stage__img--breath { animation: respira 3.6s ease-in-out infinite; }
+.stage__img--breath-late { animation-delay: 0.8s; }
+
+/* la alerta pulsa dos veces y se queda fija */
+@keyframes alerta { 0% { opacity: 0; transform: scale(.8); } 20% { opacity: 1; transform: scale(1); } 40% { opacity: .55; } 60% { opacity: 1; } 80% { opacity: .55; } 100% { opacity: 1; } }
+
+/* modal o velo */
+@keyframes velo { from { opacity: 0; } to { opacity: 1; } }
+@keyframes panelEntra { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: none; } }
+
+/* Con movimiento reducido queda solo lo que es cambio de opacidad. */
+@keyframes soloAparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes soloDesvanece { from { opacity: 1; } to { opacity: 0; } }
+@keyframes alertaOpacidad { 0% { opacity: 0; } 20% { opacity: 1; } 40% { opacity: .55; } 60% { opacity: 1; } 80% { opacity: .55; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .stage__sprite--in, .stats--in, .move-row--in, .card, .panel { animation-name: soloAparece; }
+  .stage__sprite--out { animation-name: soloDesvanece; }
+  .stage__img--breath, .mult--changed, .card__dot--pulse { animation: none; }
+  .alert-in { animation-name: alertaOpacidad; }
+}
 
 /* Scroll interno del buscador */
 .scroll-list { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }

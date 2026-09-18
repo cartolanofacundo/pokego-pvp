@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { Pokemon } from "@/lib/data";
 import { withBasePath } from "@/lib/basePath";
 
@@ -11,14 +14,71 @@ import { withBasePath } from "@/lib/basePath";
  * Sprites de campo: GIF animados de Pokémon Showdown (frente y espalda),
  * decisión del dueño del proyecto. Sin `pixelated`: no son pixel art.
  *
- * Luz de contorno: la mitad del dex es oscura y un sprite negro o violeta
- * se funde con su campo. Dos drop-shadow sin desplazamiento (uno finito casi
- * blanco que dibuja el borde, otro ancho del color del campo que lo despega)
- * más un halo radial detrás de cada combatiente, por debajo de los anillos.
+ * Luz difusa: la mitad del dex es oscura y un sprite negro o violeta se
+ * funde con su campo. Dos drop-shadow sin desplazamiento (uno abierto casi
+ * blanco, otro ancho del color del campo) más un halo radial detrás de cada
+ * combatiente, por debajo de los anillos. La separación viene del volumen de
+ * luz, no de un borde duro.
+ *
+ * Movimiento: el sprite entra desde su lado (220 ms) y el anterior sale en
+ * 120 ms mientras el nuevo entra; en campo respira (el único bucle).
  */
 export function Stage({ side, pokemon }: { side: "rival" | "ally"; pokemon: Pokemon | null }) {
   if (side === "rival") return <RivalStage pokemon={pokemon} />;
   return <AllyStage pokemon={pokemon} />;
+}
+
+const RIVAL_LIGHT =
+  "drop-shadow(0 0 5px rgba(255,238,238,0.26)) drop-shadow(0 0 34px rgba(255,170,170,0.34)) drop-shadow(0 24px 24px rgba(0,0,0,0.62))";
+const ALLY_LIGHT =
+  "drop-shadow(0 0 5px rgba(238,246,255,0.28)) drop-shadow(0 0 36px rgba(150,195,250,0.38)) drop-shadow(0 22px 22px rgba(0,0,0,0.66)) contrast(1.06)";
+
+const EXIT_MS = 120;
+
+/**
+ * Sprite en campo. Cuando cambia el Pokémon, el saliente queda 120 ms con su
+ * animación de salida (sin scale, más rápida que la entrada) y el entrante
+ * arranca en el mismo instante desde su lado.
+ */
+function FieldSprite({ side, pokemon }: { side: "rival" | "ally"; pokemon: Pokemon | null }) {
+  const [current, setCurrent] = useState(pokemon);
+  const [outgoing, setOutgoing] = useState<Pokemon | null>(null);
+  if (current?.speciesId !== pokemon?.speciesId) {
+    // Ajuste de estado durante el render: el que estaba pasa a saliente.
+    setOutgoing(current);
+    setCurrent(pokemon);
+  }
+  useEffect(() => {
+    if (!outgoing) return;
+    const t = setTimeout(() => setOutgoing(null), EXIT_MS);
+    return () => clearTimeout(t);
+  }, [outgoing]);
+
+  const cls = side === "rival" ? "rival" : "vos";
+  const src = (p: Pokemon) => withBasePath(side === "rival" ? `/sprites/${p.speciesId}.gif` : `/sprites/back/${p.speciesId}.gif`);
+  const light = side === "rival" ? RIVAL_LIGHT : ALLY_LIGHT;
+
+  return (
+    <>
+      {outgoing && (
+        <span key={`out-${outgoing.speciesId}`} className={`stage__sprite stage__sprite--${cls} stage__sprite--out`} aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="stage__img" src={src(outgoing)} alt="" style={{ filter: light }} />
+        </span>
+      )}
+      {current && (
+        <span key={current.speciesId} className={`stage__sprite stage__sprite--${cls} stage__sprite--in`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className={`stage__img stage__img--breath ${side === "ally" ? "stage__img--breath-late" : ""}`}
+            src={src(current)}
+            alt={side === "rival" ? current.speciesName : `${current.speciesName} de espaldas`}
+            style={{ filter: light }}
+          />
+        </span>
+      )}
+    </>
+  );
 }
 
 function RivalStage({ pokemon }: { pokemon: Pokemon | null }) {
@@ -28,8 +88,8 @@ function RivalStage({ pokemon }: { pokemon: Pokemon | null }) {
     <div className="stage stage--rival" data-coach="rival-stage">
       <div
         style={{
-          position: "absolute", top: "44%", left: "50%", width: 560, height: 560, transform: "translate(-50%,-50%)",
-          background: "radial-gradient(circle, rgba(255,150,150,0.17) 0%, rgba(255,150,150,0) 62%)",
+          position: "absolute", top: "44%", left: "50%", width: 620, height: 620, transform: "translate(-50%,-50%)",
+          background: "radial-gradient(circle, rgba(255,150,150,0.15) 0%, rgba(255,150,150,0) 62%)",
         }}
       />
       <div
@@ -46,24 +106,16 @@ function RivalStage({ pokemon }: { pokemon: Pokemon | null }) {
           background: `radial-gradient(ellipse at center, rgba(255,150,150,${dashed ? 0.07 : 0.24}) 0%, rgba(255,150,150,0) 74%)`,
         }}
       />
-      {pokemon ? (
-        <>
-          <div
-            style={{
-              position: "absolute", bottom: 36, left: "50%", width: 218, height: 38, transform: "translateX(-50%)",
-              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.66) 0%, rgba(0,0,0,0) 72%)",
-            }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            key={pokemon.speciesId}
-            className="stage__img stage__img--rival"
-            src={withBasePath(`/sprites/${pokemon.speciesId}.gif`)}
-            alt={pokemon.speciesName}
-            style={{ filter: "drop-shadow(0 0 1.5px rgba(255,238,238,0.60)) drop-shadow(0 0 20px rgba(255,170,170,0.42)) drop-shadow(0 24px 24px rgba(0,0,0,0.62))" }}
-          />
-        </>
-      ) : (
+      {pokemon && (
+        <div
+          style={{
+            position: "absolute", bottom: 36, left: "50%", width: 218, height: 38, transform: "translateX(-50%)",
+            background: "radial-gradient(ellipse at center, rgba(0,0,0,0.66) 0%, rgba(0,0,0,0) 72%)",
+          }}
+        />
+      )}
+      <FieldSprite side="rival" pokemon={pokemon} />
+      {!pokemon && (
         <span
           className="display"
           style={{
@@ -87,8 +139,8 @@ function AllyStage({ pokemon }: { pokemon: Pokemon | null }) {
     <div className="stage stage--vos" data-coach="vos-stage">
       <div
         style={{
-          position: "absolute", top: "46%", left: "50%", width: 680, height: 680, transform: "translate(-50%,-50%)",
-          background: "radial-gradient(circle, rgba(120,175,245,0.21) 0%, rgba(120,175,245,0) 62%)",
+          position: "absolute", top: "46%", left: "50%", width: 740, height: 740, transform: "translate(-50%,-50%)",
+          background: "radial-gradient(circle, rgba(120,175,245,0.18) 0%, rgba(120,175,245,0) 62%)",
         }}
       />
       <div
@@ -105,24 +157,16 @@ function AllyStage({ pokemon }: { pokemon: Pokemon | null }) {
           background: `radial-gradient(ellipse at center, rgba(130,180,244,${dashed ? 0.08 : 0.26}) 0%, rgba(130,180,244,0) 74%)`,
         }}
       />
-      {pokemon ? (
-        <>
-          <div
-            style={{
-              position: "absolute", bottom: 42, left: "50%", width: 282, height: 48, transform: "translateX(-50%)",
-              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0) 72%)",
-            }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            key={pokemon.speciesId}
-            className="stage__img stage__img--vos"
-            src={withBasePath(`/sprites/back/${pokemon.speciesId}.gif`)}
-            alt={`${pokemon.speciesName} de espaldas`}
-            style={{ filter: "drop-shadow(0 0 1.5px rgba(238,246,255,0.66)) drop-shadow(0 0 22px rgba(150,195,250,0.48)) drop-shadow(0 22px 22px rgba(0,0,0,0.66)) contrast(1.06)" }}
-          />
-        </>
-      ) : (
+      {pokemon && (
+        <div
+          style={{
+            position: "absolute", bottom: 42, left: "50%", width: 282, height: 48, transform: "translateX(-50%)",
+            background: "radial-gradient(ellipse at center, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0) 72%)",
+          }}
+        />
+      )}
+      <FieldSprite side="ally" pokemon={pokemon} />
+      {!pokemon && (
         <span
           className="display"
           style={{

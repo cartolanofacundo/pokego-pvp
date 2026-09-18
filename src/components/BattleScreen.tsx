@@ -86,7 +86,7 @@ export function BattleScreen({
         <div className="court">
           <div className="court__row court__row--rival">
             {rival ? (
-              <StatsBox side="rival" pokemon={rival} opponent={ally} league={league} />
+              <StatsBox key={rival.speciesId} side="rival" pokemon={rival} opponent={ally} league={league} />
             ) : (
               <EmptyBox side="rival" variant="rival" combo={shortcuts.addRival} onAdd={() => onAdd("rival", null)} />
             )}
@@ -98,7 +98,7 @@ export function BattleScreen({
             <Stage side="ally" pokemon={ally} />
             <Connector side="ally" dim={ally === null} />
             {ally ? (
-              <StatsBox side="ally" pokemon={ally} opponent={rival} league={league} />
+              <StatsBox key={ally.speciesId} side="ally" pokemon={ally} opponent={rival} league={league} />
             ) : (
               <EmptyBox side="ally" variant={teamEmpty ? "first" : "rival"} combo={shortcuts.addAlly} onAdd={() => onAdd("ally", null)} />
             )}

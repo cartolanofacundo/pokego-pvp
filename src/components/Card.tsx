@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { Pokemon } from "@/lib/data";
 import { withBasePath } from "@/lib/basePath";
 import type { Combo } from "@/lib/shortcuts";
@@ -38,6 +41,9 @@ export function Card({
   status: CardStatus;
   onSelect: () => void;
 }) {
+  // El anillo sale una sola vez, y solo cuando el estado cambia de verdad.
+  const [seen, setSeen] = useState({ dot: status.dot, pulse: false });
+  if (seen.dot !== status.dot) setSeen({ dot: status.dot, pulse: true });
   return (
     <button
       type="button"
@@ -53,7 +59,11 @@ export function Card({
       <span style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
         <span className="card__name">{pokemon.speciesName}</span>
         <span className="card__status">
-          <span className="card__dot" style={{ background: status.dot }} />
+          <span
+            className={`card__dot ${seen.pulse ? "card__dot--pulse" : ""}`}
+            style={{ background: status.dot, color: status.dot }}
+            onAnimationEnd={() => setSeen((s) => ({ ...s, pulse: false }))}
+          />
           <span className="card__status-text" style={{ color: status.color }}>{status.text}</span>
         </span>
       </span>

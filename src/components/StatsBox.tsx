@@ -33,7 +33,7 @@ export function StatsBox({
   const weak = weaknessesTop3(pokemon.types);
 
   return (
-    <div className={`stats ${side === "rival" ? "stats--rival" : "stats--vos"}`} data-coach={side === "rival" ? "rival-stats" : "vos-stats"}>
+    <div className={`stats stats--in ${side === "rival" ? "stats--rival" : "stats--vos"}`} data-coach={side === "rival" ? "rival-stats" : "vos-stats"}>
       <span className={side === "rival" ? "stats__edge--rival" : "stats__edge--vos"} />
 
       <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -50,7 +50,7 @@ export function StatsBox({
         <>
           <span className="label" style={{ margin: "12px 0 2px" }}>RÁPIDO</span>
           {analysis.fast ? (
-            <MoveRow move={analysis.fast} perspective={perspective} showPower={showPower} hairline={!(perspective === "theirs" && analysis.fast.effectiveness >= 1.6 && !showPower)} />
+            <MoveRow move={analysis.fast} perspective={perspective} showPower={showPower} hairline={!(perspective === "theirs" && analysis.fast.effectiveness >= 1.6 && !showPower)} index={0} />
           ) : (
             <EmptyMoves />
           )}
@@ -66,6 +66,7 @@ export function StatsBox({
                 perspective={perspective}
                 showPower={showPower}
                 hairline={i < charged.length - 1}
+                index={i + 1}
               />
             ))
           )}
