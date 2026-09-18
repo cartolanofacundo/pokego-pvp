@@ -200,11 +200,13 @@ button:focus:not(:focus-visible) { outline: none; }
   position: absolute; left: 0; right: 0;
   display: flex; align-items: center;
 }
-.court__row--rival { top: 0; height: calc(var(--h) * 0.47 - 60px); }
-.court__row--vos { bottom: 0; height: calc(var(--h) * 0.53 - 20px); }
+/* La caja acompaña a su Pokémon (conector de largo fijo); el espacio sobrante
+   queda entre la caja y el riel de fichas de ese lado. */
+.court__row--rival { top: 0; height: calc(var(--h) * 0.47 - 60px); justify-content: flex-end; }
+.court__row--vos { bottom: 0; height: calc(var(--h) * 0.53 - 20px); justify-content: flex-start; }
 .stage { position: relative; flex: 0 1 auto; height: 100%; }
-.stage--rival { width: 500px; min-width: 300px; margin-right: -180px; }
-.stage--vos { width: 610px; min-width: 300px; margin-left: -180px; }
+.stage--rival { width: 500px; min-width: 260px; margin-right: -180px; }
+.stage--vos { width: 610px; min-width: 260px; margin-left: -180px; }
 .stage__img {
   position: absolute; left: 50%; transform: translateX(-50%);
   width: auto; object-fit: contain; object-position: center bottom;
@@ -257,7 +259,8 @@ button:focus:not(:focus-visible) { outline: none; }
 .stats__divider { height: 1px; background: rgba(255,255,255,0.10); margin: 16px 0 4px; }
 
 /* Conector caja → plataforma */
-.connector { display: flex; align-items: center; flex: 1 0 40px; min-width: 40px; }
+/* 202 px a 1920 de ancho (la distancia del diseño); cede hasta 40 en la cancha más angosta. */
+.connector { display: flex; align-items: center; flex: 0 1 202px; min-width: 40px; }
 .connector__tick { width: 2px; height: 28px; background: rgba(255,255,255,0.42); flex-shrink: 0; }
 .connector__line { height: 2px; flex-grow: 1; }
 .connector__line--rival { background: linear-gradient(90deg, rgba(255,255,255,0.42) 0%, rgba(255,190,190,0.30) 100%); }
