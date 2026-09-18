@@ -31,13 +31,8 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Lienzo: 1920×1080 fijo, centrado si la ventana es más grande. */
-body {
-  min-width: 1920px;
-  min-height: 1080px;
-  display: flex;
-  justify-content: center;
-}
+/* Lienzo: 1920×1080 fijo, escalado para llenar la ventana (ver Viewport.tsx). */
+html, body { height: 100%; overflow: hidden; }
 
 button, input, a { font-family: inherit; }
 button { cursor: pointer; }

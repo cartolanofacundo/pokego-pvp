@@ -18,6 +18,7 @@ import { ConfigScreen } from "@/components/ConfigScreen";
 import { ShortcutModal } from "@/components/ShortcutModal";
 import { Onboarding } from "@/components/Onboarding";
 import { Coach, COACH_STEPS } from "@/components/Coach";
+import { Viewport } from "@/components/Viewport";
 
 const STORAGE_KEY = "pokego-pvp:v3";
 const ONBOARDED_KEY = "pokego-pvp:onboarded:v1";
@@ -246,6 +247,7 @@ export default function Home() {
     : false;
 
   return (
+    <Viewport>
     <main style={{ position: "relative", width: 1920, height: 1080, overflow: "hidden" }}>
       {screen === "config" ? (
         <ConfigScreen
@@ -309,5 +311,6 @@ export default function Home() {
         />
       )}
     </main>
+    </Viewport>
   );
 }
