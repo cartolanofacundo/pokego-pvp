@@ -24,15 +24,15 @@ function RivalStage({ pokemon }: { pokemon: Pokemon | null }) {
       <div
         style={{
           position: "absolute", bottom: 4, left: "50%", width: 430, height: 92, transform: "translateX(-50%)",
-          borderRadius: "50%", border: `1px ${ring} rgba(255,168,168,${dashed ? 0.16 : 0.18})`,
-          background: `radial-gradient(ellipse at center, rgba(255,150,150,${dashed ? 0.05 : 0.10}) 0%, rgba(255,150,150,0) 72%)`,
+          borderRadius: "50%", border: `1px ${ring} rgba(255,168,168,${dashed ? 0.30 : 0.32})`,
+          background: `radial-gradient(ellipse at center, rgba(255,150,150,${dashed ? 0.05 : 0.17}) 0%, rgba(255,150,150,0) 72%)`,
         }}
       />
       <div
         style={{
           position: "absolute", bottom: 22, left: "50%", width: 288, height: 60, transform: "translateX(-50%)",
-          borderRadius: "50%", border: `1px ${ring} rgba(255,168,168,${dashed ? 0.14 : 0.16})`,
-          background: `radial-gradient(ellipse at center, rgba(255,150,150,${dashed ? 0.07 : 0.16}) 0%, rgba(255,150,150,0) 74%)`,
+          borderRadius: "50%", border: `1px ${ring} rgba(255,168,168,${dashed ? 0.28 : 0.30})`,
+          background: `radial-gradient(ellipse at center, rgba(255,150,150,${dashed ? 0.07 : 0.24}) 0%, rgba(255,150,150,0) 74%)`,
         }}
       />
       {pokemon ? (
@@ -58,7 +58,7 @@ function RivalStage({ pokemon }: { pokemon: Pokemon | null }) {
           style={{
             position: "absolute", bottom: 92, left: "50%", transform: "translateX(-50%)",
             display: "flex", alignItems: "center", justifyContent: "center", width: 168, height: 168,
-            borderRadius: "50%", border: "1px dashed rgba(255,255,255,0.14)",
+            borderRadius: "50%", border: "1px dashed rgba(255,255,255,0.25)",
             fontSize: 58, fontWeight: 800, color: "rgba(255,255,255,0.13)",
           }}
         >
@@ -77,15 +77,15 @@ function AllyStage({ pokemon }: { pokemon: Pokemon | null }) {
       <div
         style={{
           position: "absolute", bottom: 4, left: "50%", width: 552, height: 116, transform: "translateX(-50%)",
-          borderRadius: "50%", border: `1px ${ring} rgba(150,192,244,${dashed ? 0.18 : 0.20})`,
-          background: `radial-gradient(ellipse at center, rgba(130,180,244,${dashed ? 0.05 : 0.12}) 0%, rgba(130,180,244,0) 72%)`,
+          borderRadius: "50%", border: `1px ${ring} rgba(150,192,244,${dashed ? 0.32 : 0.34})`,
+          background: `radial-gradient(ellipse at center, rgba(130,180,244,${dashed ? 0.05 : 0.19}) 0%, rgba(130,180,244,0) 72%)`,
         }}
       />
       <div
         style={{
           position: "absolute", bottom: 26, left: "50%", width: 372, height: 76, transform: "translateX(-50%)",
-          borderRadius: "50%", border: `1px ${ring} rgba(150,192,244,${dashed ? 0.16 : 0.18})`,
-          background: `radial-gradient(ellipse at center, rgba(130,180,244,${dashed ? 0.08 : 0.18}) 0%, rgba(130,180,244,0) 74%)`,
+          borderRadius: "50%", border: `1px ${ring} rgba(150,192,244,${dashed ? 0.30 : 0.32})`,
+          background: `radial-gradient(ellipse at center, rgba(130,180,244,${dashed ? 0.08 : 0.26}) 0%, rgba(130,180,244,0) 74%)`,
         }}
       />
       {pokemon ? (
@@ -111,7 +111,7 @@ function AllyStage({ pokemon }: { pokemon: Pokemon | null }) {
           style={{
             position: "absolute", bottom: 110, left: "50%", transform: "translateX(-50%)",
             display: "flex", alignItems: "center", justifyContent: "center", width: 210, height: 210,
-            borderRadius: "50%", border: "1px dashed rgba(255,255,255,0.15)",
+            borderRadius: "50%", border: "1px dashed rgba(255,255,255,0.26)",
             fontSize: 72, fontWeight: 800, color: "rgba(255,255,255,0.14)",
           }}
         >

@@ -73,7 +73,7 @@ export function StatsBox({
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "18px 0 6px" }}>
           <span className="label">ATAQUES</span>
-          <span style={{ fontSize: 17, lineHeight: 1.5, color: "#9BA3AE" }}>
+          <span style={{ fontSize: 17, lineHeight: 1.5, color: "#B4BCC6" }}>
             El gamemaster todavía no tiene los ataques de este Pokémon.
           </span>
         </div>
@@ -82,7 +82,7 @@ export function StatsBox({
       <span style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
         <span className="label" style={{ letterSpacing: "0.16em" }}>DÉBIL A</span>
         <span style={{ display: "flex", gap: 5 }}>
-          {weak.length === 0 && <span style={{ fontSize: 13, color: "#7C8694" }}>Nada, sin debilidades dobles</span>}
+          {weak.length === 0 && <span style={{ fontSize: 13, color: "#9CA6B2" }}>Nada, sin debilidades dobles</span>}
           {weak.map((t) => (
             <TypeChip key={t} type={t} variant="weak" />
           ))}
@@ -94,7 +94,7 @@ export function StatsBox({
 
 function EmptyMoves() {
   return (
-    <div className="move-row move-row--hairline" style={{ color: "#7C8694", fontSize: 15 }}>
+    <div className="move-row move-row--hairline" style={{ color: "#9CA6B2", fontSize: 15 }}>
       Sin ataque en el gamemaster
     </div>
   );

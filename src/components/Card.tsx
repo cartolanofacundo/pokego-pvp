@@ -13,14 +13,14 @@ export interface CardStatus {
 }
 
 export const STATUS = {
-  field: { text: "EN CAMPO", dot: "#C9CFD8", color: "#C9CFD8" },
-  bench: { text: "EN BANCA", dot: "rgba(255,255,255,0.22)", color: "#7C8694" },
-  rivalWins: { text: "TE GANA", dot: "#FF6B6B", color: "#FF8F8F" },
-  rivalEven: { text: "PAREJO", dot: "#F2B14C", color: "#F5C478" },
-  rivalLoses: { text: "LE GANÁS", dot: "#3FDD8F", color: "#6FE6AC" },
-  allyWins: { text: "GANA", dot: "#3FDD8F", color: "#6FE6AC" },
-  allyEven: { text: "PAREJO", dot: "#F2B14C", color: "#F5C478" },
-  allyLoses: { text: "PIERDE", dot: "#FF6B6B", color: "#FF8F8F" },
+  field: { text: "EN CAMPO", dot: "#DCE1E7", color: "#DCE1E7" },
+  bench: { text: "EN BANCA", dot: "rgba(255,255,255,0.22)", color: "#9CA6B2" },
+  rivalWins: { text: "TE GANA", dot: "#FF7E7E", color: "#FFA6A6" },
+  rivalEven: { text: "PAREJO", dot: "#F8C066", color: "#FAD190" },
+  rivalLoses: { text: "LE GANÁS", dot: "#52E79D", color: "#86EFBC" },
+  allyWins: { text: "GANA", dot: "#52E79D", color: "#86EFBC" },
+  allyEven: { text: "PAREJO", dot: "#F8C066", color: "#FAD190" },
+  allyLoses: { text: "PIERDE", dot: "#FF7E7E", color: "#FFA6A6" },
 } satisfies Record<string, CardStatus>;
 
 export function Card({

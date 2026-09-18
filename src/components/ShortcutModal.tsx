@@ -92,9 +92,9 @@ export function ShortcutModal({
         <span className="panel__edge" style={{ left: 24 }} />
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#8B94A0" }}>EDITAR ATAJO</span>
+          <span className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#A8B0BB" }}>EDITAR ATAJO</span>
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#6F7883" }}>CANCELAR</span>
+            <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#949DA9" }}>CANCELAR</span>
             <span className="kbd kbd--sm">Esc</span>
           </span>
         </div>
@@ -115,9 +115,9 @@ export function ShortcutModal({
             <>
               <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#6FE3F2" }} />
-                <span style={{ fontSize: 18, fontWeight: 500, color: "#C9CFD8", letterSpacing: "-0.01em" }}>Presioná la combinación</span>
+                <span style={{ fontSize: 18, fontWeight: 500, color: "#DCE1E7", letterSpacing: "-0.01em" }}>Presioná la combinación</span>
               </span>
-              <span className="mono" style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.14em", color: "#7C8694" }}>
+              <span className="mono" style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.14em", color: "#9CA6B2" }}>
                 CTRL · ALT · SHIFT + UNA TECLA
               </span>
             </>
@@ -125,7 +125,7 @@ export function ShortcutModal({
             <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {comboParts(phase.combo).map((part, i) => (
                 <span key={i} style={{ display: "contents" }}>
-                  {i > 0 && <span className="mono" style={{ fontSize: 17, color: "#7C8694" }}>+</span>}
+                  {i > 0 && <span className="mono" style={{ fontSize: 17, color: "#9CA6B2" }}>+</span>}
                   <span
                     className="mono"
                     style={{
@@ -143,9 +143,9 @@ export function ShortcutModal({
         </div>
 
         {phase.kind === "conflict" && (
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 16px", marginTop: 14, background: "rgba(255,107,107,0.10)" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 16px", marginTop: 14, background: "rgba(255,107,107,0.16)" }}>
             <WarningIcon size={18} label="Conflicto" />
-            <span style={{ fontSize: 14, lineHeight: 1.5, color: "#FFB3B3" }}>
+            <span style={{ fontSize: 14, lineHeight: 1.5, color: "#FFC2C2" }}>
               {comboLabel(phase.combo)} ya lo usa <span style={{ fontWeight: 600 }}>{actionLabel(phase.with)}</span>. Si lo reasignás, esa acción se
               queda sin atajo hasta que le pongas uno nuevo.
             </span>
@@ -153,16 +153,16 @@ export function ShortcutModal({
         )}
 
         {phase.kind === "reserved" && (
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 16px", marginTop: 14, background: "rgba(255,107,107,0.10)" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 16px", marginTop: 14, background: "rgba(255,107,107,0.16)" }}>
             <WarningIcon size={18} label="No se puede capturar" />
-            <span style={{ fontSize: 14, lineHeight: 1.5, color: "#FFB3B3" }}>
+            <span style={{ fontSize: 14, lineHeight: 1.5, color: "#FFC2C2" }}>
               {comboLabel(phase.combo)} se la queda el navegador: no se puede capturar desde la aplicación. Probá otra.
             </span>
           </div>
         )}
 
         {phase.kind !== "conflict" && phase.kind !== "reserved" && (
-          <span style={{ fontSize: 13.5, lineHeight: 1.5, color: "#8B94A0", marginTop: 14 }}>
+          <span style={{ fontSize: 13.5, lineHeight: 1.5, color: "#A8B0BB", marginTop: 14 }}>
             Las combinaciones que usa el navegador, como Ctrl&nbsp;W o Ctrl&nbsp;T, no se pueden capturar.
           </span>
         )}
@@ -172,20 +172,20 @@ export function ShortcutModal({
             <button
               type="button"
               className="btn"
-              style={{ background: "transparent", color: "#9BA3AE", fontSize: 13.5, fontWeight: 500, padding: "0 14px", gap: 8 }}
+              style={{ background: "transparent", color: "#B4BCC6", fontSize: 13.5, fontWeight: 500, padding: "0 14px", gap: 8 }}
               onClick={() => defaultCombo && setPhase({ kind: "captured", combo: defaultCombo })}
             >
-              <ResetIcon size={14} color="#9BA3AE" />
+              <ResetIcon size={14} color="#B4BCC6" />
               <span>Restablecer a {comboLabel(defaultCombo)}</span>
             </button>
           ) : (
             <button
               type="button"
               className="btn"
-              style={{ background: "transparent", color: "#9BA3AE", fontSize: 13.5, fontWeight: 500, padding: "0 14px", gap: 8 }}
+              style={{ background: "transparent", color: "#B4BCC6", fontSize: 13.5, fontWeight: 500, padding: "0 14px", gap: 8 }}
               onClick={() => setPhase({ kind: "waiting" })}
             >
-              <ResetIcon size={14} color="#9BA3AE" />
+              <ResetIcon size={14} color="#B4BCC6" />
               <span>Probar otra tecla</span>
             </button>
           )}
@@ -198,7 +198,7 @@ export function ShortcutModal({
               <button
                 type="button"
                 className="btn"
-                style={{ padding: "0 22px", background: "rgba(255,107,107,0.18)", boxShadow: "inset 0 0 0 1px rgba(255,107,107,0.38)", color: "#FFB3B3" }}
+                style={{ padding: "0 22px", background: "rgba(255,107,107,0.18)", boxShadow: "inset 0 0 0 1px rgba(255,107,107,0.38)", color: "#FFC2C2" }}
                 onClick={() => onSave(phase.combo, phase.with)}
               >
                 Reasignar igual
@@ -211,7 +211,7 @@ export function ShortcutModal({
                 style={{
                   padding: "0 22px",
                   background: canSave ? "#F2F3F5" : "rgba(255,255,255,0.06)",
-                  color: canSave ? "#0B0D11" : "#6B7480",
+                  color: canSave ? "#0B0D11" : "#8E97A3",
                   cursor: canSave ? "pointer" : "default",
                 }}
                 onClick={() => phase.kind === "captured" && onSave(phase.combo, null)}

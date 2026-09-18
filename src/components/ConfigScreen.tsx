@@ -30,7 +30,7 @@ export function ConfigScreen({
         <div key={id} className="cfg-row cfg-row--fixed">
           <span className="cfg-row__label">{def.label}</span>
           <Kbd combo={shortcuts[id]} />
-          <span className="mono" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "#6B7480" }}>FIJO</span>
+          <span className="mono" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "#8E97A3" }}>FIJO</span>
         </div>
       );
     }
@@ -52,7 +52,7 @@ export function ConfigScreen({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 68, padding: "0 48px", flexShrink: 0 }}>
-        <button type="button" className="btn" style={{ padding: "0 16px 0 12px", gap: 10, fontSize: 15, background: "rgba(255,255,255,0.055)" }} onClick={onBack}>
+        <button type="button" className="btn" style={{ padding: "0 16px 0 12px", gap: 10, fontSize: 15, background: "rgba(255,255,255,0.10)" }} onClick={onBack}>
           <BackIcon />
           <span>Combate</span>
         </button>
@@ -65,18 +65,18 @@ export function ConfigScreen({
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 48px 40px", flexGrow: 1, minHeight: 0 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: 1120 }}>
           <span className="display" style={{ fontSize: 44, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05 }}>Configuración</span>
-          <span className="label" style={{ fontSize: 11, color: "#8B94A0" }}>ATAJOS DE TECLADO</span>
+          <span className="label" style={{ fontSize: 11, color: "#A8B0BB" }}>ATAJOS DE TECLADO</span>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 48, width: 1120, marginTop: 36 }}>
           <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-            <span className="label label--rail" style={{ color: "#7C8694", marginBottom: 12 }}>{groups[0].title}</span>
+            <span className="label label--rail" style={{ color: "#9CA6B2", marginBottom: 12 }}>{groups[0].title}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{groups[0].ids.map(row)}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-            <span className="label label--rail" style={{ color: "#7C8694", marginBottom: 12 }}>{groups[1].title}</span>
+            <span className="label label--rail" style={{ color: "#9CA6B2", marginBottom: 12 }}>{groups[1].title}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{groups[1].ids.map(row)}</div>
-            <span className="label label--rail" style={{ color: "#7C8694", margin: "28px 0 12px" }}>{groups[2].title}</span>
+            <span className="label label--rail" style={{ color: "#9CA6B2", margin: "28px 0 12px" }}>{groups[2].title}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{groups[2].ids.map(row)}</div>
           </div>
         </div>

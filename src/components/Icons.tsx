@@ -3,7 +3,7 @@
 export function BoltIcon() {
   return (
     <svg width="9" height="11" viewBox="0 0 10 12" aria-hidden="true">
-      <path d="M6 0L0 7h3.2L4 12l6-7H6.8z" fill="#9BA3AE" />
+      <path d="M6 0L0 7h3.2L4 12l6-7H6.8z" fill="#B4BCC6" />
     </svg>
   );
 }
@@ -11,8 +11,8 @@ export function BoltIcon() {
 export function ClockIcon() {
   return (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <circle cx="6" cy="6" r="4.6" stroke="#9BA3AE" strokeWidth="1.4" />
-      <path d="M6 3.4V6.2L7.8 7.3" stroke="#9BA3AE" strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="6" cy="6" r="4.6" stroke="#B4BCC6" strokeWidth="1.4" />
+      <path d="M6 3.4V6.2L7.8 7.3" stroke="#B4BCC6" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -20,14 +20,14 @@ export function ClockIcon() {
 export function WarningIcon({ size = 17, label }: { size?: number; label: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 18 18" fill="none" role="img" aria-label={label} style={{ flexShrink: 0 }}>
-      <path d="M9 2.6L16.2 15H1.8L9 2.6z" stroke="#FF6B6B" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M9 7.2v3.1" stroke="#FF6B6B" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="9" cy="12.4" r="0.85" fill="#FF6B6B" />
+      <path d="M9 2.6L16.2 15H1.8L9 2.6z" stroke="#FF7E7E" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M9 7.2v3.1" stroke="#FF7E7E" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="9" cy="12.4" r="0.85" fill="#FF7E7E" />
     </svg>
   );
 }
 
-export function PlusIcon({ size = 15, color = "#8B94A0", width = 1.7 }: { size?: number; color?: string; width?: number }) {
+export function PlusIcon({ size = 15, color = "#A8B0BB", width = 1.7 }: { size?: number; color?: string; width?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 15 15" fill="none" aria-hidden="true">
       <path d="M7.5 3v9M3 7.5h9" stroke={color} strokeWidth={width} strokeLinecap="round" />
@@ -46,7 +46,7 @@ export function PlusIcon14() {
 export function ChevronDownIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path d="M3 4.5L6 7.5L9 4.5" stroke="#9BA3AE" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 4.5L6 7.5L9 4.5" stroke="#B4BCC6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -82,7 +82,7 @@ export function BackIcon() {
   );
 }
 
-export function ResetIcon({ size = 15, color = "#C9CFD8" }: { size?: number; color?: string }) {
+export function ResetIcon({ size = 15, color = "#DCE1E7" }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M3 8a5 5 0 1 1 1.6 3.7" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
@@ -91,7 +91,7 @@ export function ResetIcon({ size = 15, color = "#C9CFD8" }: { size?: number; col
   );
 }
 
-export function PencilIcon({ color = "#6B7480" }: { color?: string }) {
+export function PencilIcon({ color = "#8E97A3" }: { color?: string }) {
   return (
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M11.2 2.4l2.4 2.4-8 8H3.2v-2.4l8-8z" stroke={color} strokeWidth="1.5" strokeLinejoin="round" />

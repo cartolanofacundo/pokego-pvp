@@ -49,13 +49,13 @@ export function Onboarding({
         }}
       >
         <span className="panel__edge" />
-        <span className="label" style={{ fontSize: 11, letterSpacing: "0.2em", color: "#8B94A0" }}>PRIMERA VEZ ACÁ</span>
+        <span className="label" style={{ fontSize: 11, letterSpacing: "0.2em", color: "#A8B0BB" }}>PRIMERA VEZ ACÁ</span>
         <span id="welcome-title" className="display" style={{ fontSize: 52, fontWeight: 800, letterSpacing: "-0.035em", lineHeight: 1.04, marginTop: 16 }}>
           Todo el matchup,
           <br />
           de un vistazo
         </span>
-        <span style={{ fontSize: 18, lineHeight: 1.55, color: "#A8B0BA", marginTop: 16, maxWidth: 640 }}>
+        <span style={{ fontSize: 18, lineHeight: 1.55, color: "#BFC6CE", marginTop: 16, maxWidth: 640 }}>
           Cargá los seis Pokémon del combate y la pantalla te muestra, mientras jugás en el celular, qué ataque te pega fuerte, cuánto tarda
           cada cargado y a quién conviene mandar.
         </span>
@@ -72,8 +72,8 @@ export function Onboarding({
         </div>
 
         <span style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18 }}>
-          <GearIcon size={16} color="#8B94A0" />
-          <span style={{ fontSize: 14.5, color: "#9BA3AE" }}>
+          <GearIcon size={16} color="#A8B0BB" />
+          <span style={{ fontSize: 14.5, color: "#B4BCC6" }}>
             Cualquiera de estos se cambia desde <span style={{ fontWeight: 600, color: "#7FE0EF" }}>Configuración</span>, con la tecla que te
             quede cómoda.
           </span>

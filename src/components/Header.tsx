@@ -24,13 +24,13 @@ export function Header({
         <span className="display" style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em" }}>
           PokéGO PVP
         </span>
-        <span className="label label--rail" style={{ color: "#7C8694" }}>TIEMPO REAL</span>
+        <span className="label label--rail" style={{ color: "#9CA6B2" }}>TIEMPO REAL</span>
       </span>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12 }} data-coach="header-controls">
         <button type="button" className="btn btn--league" onClick={onCycleLeague} aria-label={`Liga: ${current.label}. Cambiar de liga`}>
           <span>{current.label}</span>
-          <span className="mono" style={{ fontSize: 11.5, fontWeight: 600, color: "#9BA3AE" }}>CP {current.cp}</span>
+          <span className="mono" style={{ fontSize: 11.5, fontWeight: 600, color: "#B4BCC6" }}>CP {current.cp}</span>
           <ChevronDownIcon />
         </button>
         <button type="button" className="btn" onClick={onNewBattle}>

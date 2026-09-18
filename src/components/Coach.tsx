@@ -138,15 +138,15 @@ export function Coach({
       />
       <div className="panel panel--cut-18" style={{ position: "absolute", ...card, width: CARD_W, display: "flex", flexDirection: "column", padding: 22 }}>
         <span style={{ position: "absolute", width: 16, height: 16, background: "#12151A", transform: "rotate(45deg)", ...arrowStyle }} />
-        <span className="label" style={{ fontSize: 10.5, color: "#8B94A0" }}>PASO {step} DE {COACH_STEPS.length}</span>
+        <span className="label" style={{ fontSize: 10.5, color: "#A8B0BB" }}>PASO {step} DE {COACH_STEPS.length}</span>
         <span id="coach-title" style={{ fontSize: 21, fontWeight: 600, letterSpacing: "-0.02em", marginTop: 10 }}>{def.title}</span>
-        <span style={{ fontSize: 14.5, lineHeight: 1.55, color: "#9BA3AE", marginTop: 8 }}>{def.text}</span>
+        <span style={{ fontSize: 14.5, lineHeight: 1.55, color: "#B4BCC6", marginTop: 8 }}>{def.text}</span>
         {def.shortcut && (
           <span style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 16 }}>
             <span className="kbd" style={{ height: 26, padding: "0 10px", background: "rgba(255,255,255,0.08)", fontSize: 12 }}>
               {comboLabel(shortcuts[def.shortcut.action]) || "—"}
             </span>
-            <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#7C8694" }}>{def.shortcut.label}</span>
+            <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#9CA6B2" }}>{def.shortcut.label}</span>
           </span>
         )}
         <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 22 }}>
@@ -156,13 +156,13 @@ export function Coach({
                 key={i}
                 style={{
                   width: i + 1 === step ? 20 : 5, height: 5, borderRadius: 999,
-                  background: i + 1 === step ? "#C9CFD8" : "rgba(255,255,255,0.22)",
+                  background: i + 1 === step ? "#DCE1E7" : "rgba(255,255,255,0.22)",
                 }}
               />
             ))}
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button type="button" className="btn" style={{ height: 40, padding: "0 14px", background: "transparent", color: "#9BA3AE", fontSize: 13.5, fontWeight: 500 }} onClick={onSkip}>
+            <button type="button" className="btn" style={{ height: 40, padding: "0 14px", background: "transparent", color: "#B4BCC6", fontSize: 13.5, fontWeight: 500 }} onClick={onSkip}>
               Saltar
             </button>
             <button

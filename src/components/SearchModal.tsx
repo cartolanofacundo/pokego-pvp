@@ -88,13 +88,13 @@ export function SearchModal({
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px 16px" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span id="search-title" className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#8B94A0" }}>
+            <span id="search-title" className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#A8B0BB" }}>
               {side === "rival" ? "AGREGAR ENEMIGO" : "AGREGAR ALIADO"}
             </span>
             <Kbd combo={addCombo} small />
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#6F7883" }}>CERRAR</span>
+            <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#949DA9" }}>CERRAR</span>
             <Kbd combo={closeCombo} small />
           </span>
         </div>
@@ -128,13 +128,13 @@ export function SearchModal({
           />
         </div>
 
-        <span className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#8B94A0", padding: "22px 4px 12px" }}>
+        <span className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#A8B0BB", padding: "22px 4px 12px" }}>
           {query.trim() ? "RESULTADOS" : `MÁS USADOS EN ${leagueLabel}`}
         </span>
 
         <div ref={listRef} className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: MAX_ROWS * 66 + (MAX_ROWS - 1) * 4 }}>
           {results.length === 0 && (
-            <span style={{ padding: "18px 14px", fontSize: 15, color: "#7C8694" }}>Ningún Pokémon con ese nombre en esta liga.</span>
+            <span style={{ padding: "18px 14px", fontSize: 15, color: "#9CA6B2" }}>Ningún Pokémon con ese nombre en esta liga.</span>
           )}
           {results.map((p, i) => (
             <button
@@ -163,7 +163,7 @@ export function SearchModal({
           <Hint keys="↵" text="AGREGAR AL EQUIPO" />
           <Hint keys="Tab" text={side === "rival" ? "CAMBIAR A ALIADO" : "CAMBIAR A ENEMIGO"} />
           {teamFull && (
-            <span className="mono" style={{ marginLeft: "auto", fontSize: 10.5, letterSpacing: "0.08em", color: "#FFB3B3" }}>
+            <span className="mono" style={{ marginLeft: "auto", fontSize: 10.5, letterSpacing: "0.08em", color: "#FFC2C2" }}>
               EQUIPO COMPLETO · QUITÁ UNO PRIMERO
             </span>
           )}
@@ -177,7 +177,7 @@ function Hint({ keys, text }: { keys: string; text: string }) {
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
       <span className="kbd kbd--sm">{keys}</span>
-      <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#8B94A0" }}>{text}</span>
+      <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#A8B0BB" }}>{text}</span>
     </span>
   );
 }

@@ -21,7 +21,7 @@ export function EmptyBox({
       <span className="label" style={{ fontSize: 11 }}>
         {isFirst ? "EMPEZÁ POR ACÁ" : "SIN RIVAL EN CAMPO"}
       </span>
-      <span style={{ fontSize: 19, lineHeight: 1.5, color: "#9BA3AE", maxWidth: 470 }}>
+      <span style={{ fontSize: 19, lineHeight: 1.5, color: "#B4BCC6", maxWidth: 470 }}>
         {isFirst
           ? "Armá tu equipo de tres. Queda guardado entre combates, así la próxima vez solo cargás los rivales."
           : "Cargá al Pokémon que tenés enfrente y acá aparecen sus ataques, cuánto te pegan y en cuántos turnos cargan."}

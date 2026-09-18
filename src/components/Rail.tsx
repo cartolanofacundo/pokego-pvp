@@ -59,7 +59,7 @@ export function Rail({
       {isRival && (
         <span
           className="mono"
-          style={{ fontSize: 10, lineHeight: 1.6, letterSpacing: "0.04em", color: "#626A75", marginTop: "auto" }}
+          style={{ fontSize: 10, lineHeight: 1.6, letterSpacing: "0.04em", color: "#8A93A0", marginTop: "auto" }}
         >
           DATOS PVPOKE
           <br />
