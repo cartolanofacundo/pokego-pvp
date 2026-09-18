@@ -63,7 +63,7 @@ button:focus:not(:focus-visible) { outline: none; }
 }
 /* 18 px de alto: así las fichas rival arrancan en y = 60 + 18 + 89 = 167, la
    misma distancia al borde que las tuyas (1080 - 20 - 147 = 913). */
-.label--rail { font-size: 10.5px; color: #A8B0BB; display: block; line-height: 18px; }
+.label--rail { font-size: 10.5px; color: #C2C9D2; display: block; line-height: 18px; }
 
 /* Ficha de tecla: "Ctrl A", "Esc" */
 .kbd {
@@ -292,8 +292,10 @@ button:focus:not(:focus-visible) { outline: none; }
 }
 .card--rival { clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px); }
 .card--vos { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
-.card--active { background: rgba(255,255,255,0.13); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28); }
-.card--bench { background: rgba(255,255,255,0.075); color: var(--ink-2); opacity: 0.96; }
+.card--active { background: rgba(255,255,255,0.17); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.38); }
+/* El banco se distingue del activo por el salto de relleno y de ring, no por
+   opacidad: con luz ambiente una ficha translúcida desaparece en vez de apagarse. */
+.card--bench { background: rgba(255,255,255,0.11); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.17); color: var(--ink-2); }
 .card__sprite { width: 84px; height: 84px; image-rendering: pixelated; flex-shrink: 0; }
 .card__name { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card__status { display: flex; align-items: center; gap: 6px; }
