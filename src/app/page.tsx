@@ -1,18 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { getPokemon, META, type LeagueKey } from "@/lib/data";
-import { rankTeamAgainst } from "@/lib/team";
-import { matchupAdvantage, relevantAttackTypes } from "@/lib/matchup";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getPokemon, type LeagueKey, type Pokemon } from "@/lib/data";
 import { loadJSON, saveJSON } from "@/lib/storage";
-import { LeagueDropdown } from "@/components/LeagueDropdown";
-import { TeamSlots, type SlotBadge } from "@/components/TeamSlots";
-import { BattleArena } from "@/components/BattleArena";
-import { PickerModal } from "@/components/PickerModal";
+import {
+  combosEqual,
+  comboFromEvent,
+  DEFAULT_SHORTCUTS,
+  loadShortcuts,
+  saveShortcuts,
+  type ActionId,
+  type Combo,
+} from "@/lib/shortcuts";
+import { BattleScreen, type BattleViewState } from "@/components/BattleScreen";
+import { SearchModal } from "@/components/SearchModal";
+import { ConfigScreen } from "@/components/ConfigScreen";
+import { ShortcutModal } from "@/components/ShortcutModal";
+import { Onboarding } from "@/components/Onboarding";
+import { Coach, COACH_STEPS } from "@/components/Coach";
 
-const STORAGE_KEY = "pokego-pvp:v2";
+const STORAGE_KEY = "pokego-pvp:v3";
+const ONBOARDED_KEY = "pokego-pvp:onboarded:v1";
+const LEAGUE_ORDER: LeagueKey[] = ["great", "ultra", "master"];
 
-interface PersistedState {
+interface Persisted {
   league: LeagueKey;
   team: (string | null)[];
   activeIndex: number;
@@ -20,7 +31,7 @@ interface PersistedState {
   enemyActiveIndex: number;
 }
 
-const DEFAULT_STATE: PersistedState = {
+const EMPTY: Persisted = {
   league: "great",
   team: [null, null, null],
   activeIndex: 0,
@@ -28,189 +39,273 @@ const DEFAULT_STATE: PersistedState = {
   enemyActiveIndex: 0,
 };
 
-type PickerTarget = { side: "ally" | "enemy"; index: number } | null;
+type Side = "rival" | "ally";
+type Modal = { kind: "search"; side: Side; slot: number | null } | { kind: "shortcut"; action: ActionId } | null;
+type Tour = { kind: "welcome" } | { kind: "coach"; step: number } | null;
+
+// Estado de muestra para el recorrido: cada paso se apoya sobre la pantalla
+// del estado que corresponde (vacío, sin rival, combate), con los mismos
+// Pokémon que las mesas de trabajo. Al terminar se vuelve al estado real.
+function demoState(step: number, league: LeagueKey): Persisted {
+  if (step <= 2) return { ...EMPTY, league };
+  if (step === 3) return { ...EMPTY, league, team: ["azumarill", "medicham", null], activeIndex: 0 };
+  return {
+    league,
+    team: ["azumarill", "medicham", null],
+    activeIndex: 0,
+    enemyTeam: ["melmetal", "altaria", "skarmory"],
+    enemyActiveIndex: 0,
+  };
+}
+
+function resolveTeam(ids: (string | null)[]): (Pokemon | null)[] {
+  return ids.map((id) => (id ? getPokemon(id) ?? null : null));
+}
 
 export default function Home() {
   const [ready, setReady] = useState(false);
-  const [league, setLeague] = useState<LeagueKey>(DEFAULT_STATE.league);
-  const [team, setTeam] = useState<(string | null)[]>(DEFAULT_STATE.team);
-  const [activeIndex, setActiveIndex] = useState(DEFAULT_STATE.activeIndex);
-  const [enemyTeam, setEnemyTeam] = useState<(string | null)[]>(DEFAULT_STATE.enemyTeam);
-  const [enemyActiveIndex, setEnemyActiveIndex] = useState(DEFAULT_STATE.enemyActiveIndex);
+  const [state, setState] = useState<Persisted>(EMPTY);
+  const [shortcuts, setShortcuts] = useState<Record<ActionId, Combo | null>>(DEFAULT_SHORTCUTS);
+  const [screen, setScreen] = useState<"battle" | "config">("battle");
+  const [modal, setModal] = useState<Modal>(null);
+  const [tour, setTour] = useState<Tour>(null);
 
-  const [picker, setPicker] = useState<PickerTarget>(null);
-
-  // Cargar estado persistido una vez montado: localStorage no existe en el
-  // render estático del export, así que se lee recién en el cliente para no
-  // romper la hidratación. Es una carga única (deps: []), no una
-  // sincronización continua con un sistema externo.
+  // Carga única de localStorage al montar: no existe en el export estático.
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    const saved = loadJSON<PersistedState>(STORAGE_KEY, DEFAULT_STATE);
-    setLeague(saved.league);
-    setTeam(saved.team.length === 3 ? saved.team : DEFAULT_STATE.team);
-    setActiveIndex(saved.activeIndex);
-    setEnemyTeam(saved.enemyTeam?.length === 3 ? saved.enemyTeam : DEFAULT_STATE.enemyTeam);
-    setEnemyActiveIndex(saved.enemyActiveIndex ?? 0);
+    const saved = loadJSON<Persisted>(STORAGE_KEY, EMPTY);
+    setState({
+      league: LEAGUE_ORDER.includes(saved.league) ? saved.league : "great",
+      team: saved.team?.length === 3 ? saved.team : EMPTY.team,
+      activeIndex: saved.activeIndex ?? 0,
+      enemyTeam: saved.enemyTeam?.length === 3 ? saved.enemyTeam : EMPTY.enemyTeam,
+      enemyActiveIndex: saved.enemyActiveIndex ?? 0,
+    });
+    setShortcuts(loadShortcuts());
+    if (!loadJSON<boolean>(ONBOARDED_KEY, false)) setTour({ kind: "welcome" });
     setReady(true);
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
-    if (!ready) return;
-    saveJSON(STORAGE_KEY, { league, team, activeIndex, enemyTeam, enemyActiveIndex });
-  }, [ready, league, team, activeIndex, enemyTeam, enemyActiveIndex]);
+    if (ready) saveJSON(STORAGE_KEY, state);
+  }, [ready, state]);
 
-  const teamPokemon = useMemo(() => team.map((id) => (id ? getPokemon(id) ?? null : null)), [team]);
-  const enemyPokemon = useMemo(
-    () => enemyTeam.map((id) => (id ? getPokemon(id) ?? null : null)),
-    [enemyTeam]
+  // ---------- acciones ----------
+  const update = useCallback((patch: Partial<Persisted> | ((s: Persisted) => Partial<Persisted>)) => {
+    setState((s) => ({ ...s, ...(typeof patch === "function" ? patch(s) : patch) }));
+  }, []);
+
+  const cycleLeague = useCallback(() => {
+    update((s) => ({ league: LEAGUE_ORDER[(LEAGUE_ORDER.indexOf(s.league) + 1) % LEAGUE_ORDER.length] }));
+  }, [update]);
+
+  const newBattle = useCallback(() => {
+    update({ enemyTeam: [null, null, null], enemyActiveIndex: 0 });
+  }, [update]);
+
+  const setActive = useCallback(
+    (side: Side, slot: number) => {
+      update((s) => {
+        const ids = side === "rival" ? s.enemyTeam : s.team;
+        if (!ids[slot]) return {};
+        return side === "rival" ? { enemyActiveIndex: slot } : { activeIndex: slot };
+      });
+    },
+    [update]
   );
-  const activeAlly = teamPokemon[activeIndex] ?? null;
-  const activeEnemy = enemyPokemon[enemyActiveIndex] ?? null;
 
-  // Tipos de ataque relevantes de cada equipo, para resaltar en el panel de
-  // tipos del otro lado solo lo que efectivamente puede pasar en esta pelea.
-  const allyAttackTypes = useMemo(() => relevantAttackTypes(teamPokemon, league), [teamPokemon, league]);
-  const enemyAttackTypes = useMemo(
-    () => relevantAttackTypes(enemyPokemon, league),
-    [enemyPokemon, league]
+  const openSearch = useCallback((side: Side, slot: number | null) => {
+    setScreen("battle");
+    setModal({ kind: "search", side, slot });
+  }, []);
+
+  const addPokemon = useCallback(
+    (side: Side, speciesId: string, slot: number | null) => {
+      update((s) => {
+        const ids = [...(side === "rival" ? s.enemyTeam : s.team)];
+        const activeIdx = side === "rival" ? s.enemyActiveIndex : s.activeIndex;
+        const target = slot !== null && !ids[slot] ? slot : ids.findIndex((id) => id === null);
+        if (target === -1) return {};
+        ids[target] = speciesId;
+        // El rival recién cargado es el que está en cancha. El aliado solo
+        // toma el campo si no había nadie activo.
+        const becomesActive = side === "rival" || !ids[activeIdx];
+        if (side === "rival") return { enemyTeam: ids, enemyActiveIndex: becomesActive ? target : activeIdx };
+        return { team: ids, activeIndex: becomesActive ? target : activeIdx };
+      });
+      setModal(null);
+    },
+    [update]
   );
 
-  // Badges de la columna enemiga: "!" si ese enemigo tiene ventaja contra mi
-  // Pokémon activo (me conviene tenerlo en cuenta / cuidado si sale).
-  const enemyBadges: SlotBadge[] = useMemo(() => {
-    if (!activeAlly) return enemyPokemon.map(() => null);
-    return enemyPokemon.map((p) => (p && matchupAdvantage(p, activeAlly, league).advantage ? "warn" : null));
-  }, [enemyPokemon, activeAlly, league]);
+  const removePokemon = useCallback(
+    (side: Side, slot: number) => {
+      update((s) => {
+        const ids = [...(side === "rival" ? s.enemyTeam : s.team)];
+        if (!ids[slot]) return {};
+        ids[slot] = null;
+        const activeIdx = side === "rival" ? s.enemyActiveIndex : s.activeIndex;
+        let nextActive = activeIdx;
+        if (activeIdx === slot) {
+          const other = ids.findIndex((id) => id !== null);
+          nextActive = other === -1 ? slot : other;
+        }
+        return side === "rival" ? { enemyTeam: ids, enemyActiveIndex: nextActive } : { team: ids, activeIndex: nextActive };
+      });
+    },
+    [update]
+  );
 
-  // Badges de la columna aliada: "+" si ese aliado tiene ventaja contra el
-  // enemigo activo (sugerencia de a quién cambiar).
-  const allyBadges: SlotBadge[] = useMemo(() => {
-    if (!activeEnemy) return teamPokemon.map(() => null);
-    return teamPokemon.map((p) => (p && matchupAdvantage(p, activeEnemy, league).advantage ? "good" : null));
-  }, [teamPokemon, activeEnemy, league]);
+  const finishTour = useCallback(() => {
+    setTour(null);
+    saveJSON(ONBOARDED_KEY, true);
+  }, []);
 
-  // Entre los aliados con ventaja, cuál es el mejor switch (para el anillo extra).
-  const bestAllyIndex = useMemo(() => {
-    if (!activeEnemy) return null;
-    const scores = rankTeamAgainst(teamPokemon, activeEnemy, league);
-    let bestIdx: number | null = null;
-    let bestTotal = -Infinity;
-    scores.forEach((s, i) => {
-      if (s && s.total > bestTotal) {
-        bestTotal = s.total;
-        bestIdx = i;
+  // Poner en campo el cupo N: si está vacío, abre el buscador para ese cupo.
+  const fieldSlot = useCallback(
+    (side: Side, slot: number) => {
+      const ids = side === "rival" ? state.enemyTeam : state.team;
+      if (ids[slot]) setActive(side, slot);
+      else openSearch(side, slot);
+    },
+    [state, setActive, openSearch]
+  );
+
+  const runAction = useCallback(
+    (id: ActionId) => {
+      switch (id) {
+        case "rival1": return fieldSlot("rival", 0);
+        case "rival2": return fieldSlot("rival", 1);
+        case "rival3": return fieldSlot("rival", 2);
+        case "ally1": return fieldSlot("ally", 0);
+        case "ally2": return fieldSlot("ally", 1);
+        case "ally3": return fieldSlot("ally", 2);
+        case "addRival": return openSearch("rival", null);
+        case "addAlly": return openSearch("ally", null);
+        case "newBattle": return newBattle();
+        case "cycleLeague": return cycleLeague();
+        case "openConfig": return setScreen("config");
+        case "removeSelected": {
+          const el = document.activeElement as HTMLElement | null;
+          const side = el?.dataset.side as Side | undefined;
+          const slot = el?.dataset.slot;
+          if (side && slot !== undefined) removePokemon(side, Number(slot));
+          return;
+        }
+        case "close": return;
       }
-    });
-    return bestIdx;
-  }, [teamPokemon, activeEnemy, league]);
+    },
+    [fieldSlot, openSearch, newBattle, cycleLeague, removePokemon]
+  );
 
-  function assignSlot(side: "ally" | "enemy", index: number, speciesId: string) {
-    if (side === "ally") {
-      setTeam((prev) => prev.map((id, i) => (i === index ? speciesId : id)));
-      // Si no había nadie activo (equipo recién vaciado), el primero que se
-      // asigna pasa a ser el activo automáticamente.
-      if (!team[activeIndex]) setActiveIndex(index);
-    } else {
-      setEnemyTeam((prev) => prev.map((id, i) => (i === index ? speciesId : id)));
-      if (!enemyTeam[enemyActiveIndex]) setEnemyActiveIndex(index);
+  // ---------- teclado global ----------
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      // Esc es fijo: cierra lo que esté más arriba.
+      if (e.code === "Escape") {
+        if (modal?.kind === "shortcut") return; // lo maneja el modal
+        if (modal) { setModal(null); e.preventDefault(); return; }
+        if (tour?.kind === "coach") { finishTour(); e.preventDefault(); return; }
+        if (screen === "config") { setScreen("battle"); e.preventDefault(); return; }
+        return;
+      }
+      if (modal || tour) return; // los modales y el recorrido capturan su propio teclado
+      const combo = comboFromEvent(e);
+      if (!combo) return;
+      const inField = (e.target as HTMLElement | null)?.tagName === "INPUT" || (e.target as HTMLElement | null)?.tagName === "TEXTAREA";
+      for (const [id, assigned] of Object.entries(shortcuts) as [ActionId, Combo | null][]) {
+        if (id === "close" || !assigned) continue;
+        if (!combosEqual(assigned, combo)) continue;
+        // Las teclas sueltas no actúan mientras se escribe en un campo.
+        if (inField && !assigned.ctrl && !assigned.alt) return;
+        e.preventDefault();
+        runAction(id);
+        return;
+      }
     }
-    setPicker(null);
-  }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shortcuts, modal, tour, screen, runAction, finishTour]);
 
-  function clearSlot(side: "ally" | "enemy", index: number) {
-    if (side === "ally") {
-      setTeam((prev) => prev.map((id, i) => (i === index ? null : id)));
-      if (activeIndex === index) {
-        const otherIdx = team.findIndex((id, i) => i !== index && id !== null);
-        if (otherIdx !== -1) setActiveIndex(otherIdx);
-      }
-    } else {
-      setEnemyTeam((prev) => prev.map((id, i) => (i === index ? null : id)));
-      if (enemyActiveIndex === index) {
-        const otherIdx = enemyTeam.findIndex((id, i) => i !== index && id !== null);
-        if (otherIdx !== -1) setEnemyActiveIndex(otherIdx);
-      }
-    }
-  }
+  // ---------- vista ----------
+  const viewSource: Persisted = tour?.kind === "coach" ? demoState(tour.step, state.league) : state;
+  const view: BattleViewState = useMemo(
+    () => ({
+      league: viewSource.league,
+      team: resolveTeam(viewSource.team),
+      activeIndex: viewSource.activeIndex,
+      enemyTeam: resolveTeam(viewSource.enemyTeam),
+      enemyActiveIndex: viewSource.enemyActiveIndex,
+    }),
+    [viewSource]
+  );
 
-  function handleNewBattle() {
-    setEnemyTeam([null, null, null]);
-    setEnemyActiveIndex(0);
-  }
-
-  const gamemasterDate = META.gamemasterTimestamp
-    ? new Date(META.gamemasterTimestamp).toLocaleDateString("es-AR")
-    : null;
-
-  const pickerLeague = league;
+  const searchTeamFull = modal?.kind === "search" && modal.slot === null
+    ? (modal.side === "rival" ? state.enemyTeam : state.team).every((id) => id !== null)
+    : false;
 
   return (
-    <main className="w-full min-h-screen flex flex-col items-center p-4 gap-3">
-      <h1 className="text-[13px] font-bold text-white" style={{ textShadow: "2px 2px 0 rgba(0,0,0,0.6)" }}>
-        PokéGO PVP
-      </h1>
-
-      <div className="w-full max-w-[1200px] flex flex-col lg:flex-row gap-3 items-start">
-        {/* Columna izquierda: liga + enemigos */}
-        <div className="gb-box-dark p-3 flex flex-col gap-3 items-center w-full lg:w-[180px] shrink-0">
-          <LeagueDropdown value={league} onChange={setLeague} />
-          <TeamSlots
-            title="Enemigos"
-            team={enemyPokemon}
-            activeIndex={enemyActiveIndex}
-            badges={enemyBadges}
-            onSelect={setEnemyActiveIndex}
-            onAdd={(i) => setPicker({ side: "enemy", index: i })}
-            onClear={(i) => clearSlot("enemy", i)}
-          />
-          <button
-            onClick={handleNewBattle}
-            className="text-[8px] px-2 py-1.5 rounded border-2 border-black bg-neutral-800 text-neutral-100 hover:bg-neutral-700"
-          >
-            Nuevo combate
-          </button>
-        </div>
-
-        {/* Centro: arena de combate */}
-        <BattleArena
-          enemy={activeEnemy}
-          ally={activeAlly}
-          league={league}
-          enemyRelevantTypes={allyAttackTypes}
-          allyRelevantTypes={enemyAttackTypes}
+    <main style={{ position: "relative", width: 1920, height: 1080, overflow: "hidden" }}>
+      {screen === "config" ? (
+        <ConfigScreen
+          shortcuts={shortcuts}
+          onEdit={(action) => setModal({ kind: "shortcut", action })}
+          onRestoreDefaults={() => {
+            setShortcuts(DEFAULT_SHORTCUTS);
+            saveShortcuts(DEFAULT_SHORTCUTS);
+          }}
+          onBack={() => setScreen("battle")}
         />
+      ) : (
+        <BattleScreen
+          view={view}
+          shortcuts={shortcuts}
+          onCycleLeague={cycleLeague}
+          onNewBattle={newBattle}
+          onOpenConfig={() => setScreen("config")}
+          onSelect={setActive}
+          onAdd={openSearch}
+        />
+      )}
 
-        {/* Columna derecha: aliados */}
-        <div className="gb-box-dark p-3 flex flex-col gap-3 items-center w-full lg:w-[180px] shrink-0">
-          <TeamSlots
-            title="Aliados"
-            team={teamPokemon}
-            activeIndex={activeIndex}
-            badges={allyBadges}
-            highlightIndex={bestAllyIndex}
-            onSelect={setActiveIndex}
-            onAdd={(i) => setPicker({ side: "ally", index: i })}
-            onClear={(i) => clearSlot("ally", i)}
-          />
-        </div>
-      </div>
+      {modal?.kind === "search" && (
+        <SearchModal
+          key={modal.side}
+          side={modal.side}
+          league={state.league}
+          addCombo={modal.side === "rival" ? shortcuts.addRival : shortcuts.addAlly}
+          closeCombo={shortcuts.close}
+          teamFull={searchTeamFull}
+          onPick={(p) => addPokemon(modal.side, p.speciesId, modal.slot)}
+          onSwitchSide={() => setModal({ kind: "search", side: modal.side === "rival" ? "ally" : "rival", slot: null })}
+        />
+      )}
 
-      <footer className="text-[7px] text-neutral-400 text-center">
-        Datos de tipos, movesets y rankings de{" "}
-        <a href="https://pvpoke.com" target="_blank" rel="noreferrer" className="underline">
-          PvPoke
-        </a>
-        {gamemasterDate ? ` · actualizado ${gamemasterDate}` : ""}
-      </footer>
+      {modal?.kind === "shortcut" && (
+        <ShortcutModal
+          action={modal.action}
+          shortcuts={shortcuts}
+          onCancel={() => setModal(null)}
+          onSave={(combo, stealFrom) => {
+            const next = { ...shortcuts, [modal.action]: combo };
+            if (stealFrom) next[stealFrom] = null;
+            setShortcuts(next);
+            saveShortcuts(next);
+            setModal(null);
+          }}
+        />
+      )}
 
-      {picker && (
-        <PickerModal
-          league={pickerLeague}
-          title={picker.side === "enemy" ? "Elegir Pokémon enemigo" : "Elegir tu Pokémon"}
-          onSelect={(id) => assignSlot(picker.side, picker.index, id)}
-          onClose={() => setPicker(null)}
+      {tour?.kind === "welcome" && (
+        <Onboarding shortcuts={shortcuts} onSkip={finishTour} onStartTour={() => setTour({ kind: "coach", step: 1 })} />
+      )}
+      {tour?.kind === "coach" && (
+        <Coach
+          step={tour.step}
+          shortcuts={shortcuts}
+          onSkip={finishTour}
+          onNext={() => (tour.step >= COACH_STEPS.length ? finishTour() : setTour({ kind: "coach", step: tour.step + 1 }))}
         />
       )}
     </main>

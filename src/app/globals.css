@@ -1,86 +1,369 @@
-@import "tailwindcss";
+/* PokéGO PVP — sistema visual v0.3 (Sistema.dc.html). Lienzo fijo 1920×1080. */
 
 :root {
-  --gb-ink: #1f1f1f;
-  --gb-cream: #f8f4e3;
-  --gb-cream-dark: #e8dfc0;
-  --sky-top: #8fd3f4;
-  --sky-bottom: #b8e6a1;
-  --grass: #7bc96f;
-  --hp-green: #58d068;
-  --hp-yellow: #f0c419;
-  --hp-red: #e6483c;
+  --bg: #080A0D;
+  --surface: #12151A;
+  --ink-1: #F2F3F5;
+  --ink-2: #C9CFD8;
+  --ink-3: #9BA3AE;
+  --ink-4: #7C8694;
+  --ink-5: #6B7480;
+  --green: #3FDD8F;
+  --green-text: #6FE6AC;
+  --red: #FF6B6B;
+  --red-text: #FF8F8F;
+  --neutral: #99A2AE;
+  --amber: #F2B14C;
+  --amber-text: #F5C478;
+  --cyan: #6FE3F2;
+  --font-display: 'Bricolage Grotesque', 'Helvetica Neue', sans-serif;
+  --font-ui: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink-1);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Lienzo: 1920×1080 fijo, centrado si la ventana es más grande. */
 body {
-  background: #111318;
-  color: var(--gb-ink);
-  font-family: var(--font-pixel), "Courier New", monospace;
+  min-width: 1920px;
+  min-height: 1080px;
+  display: flex;
+  justify-content: center;
 }
 
-.pixelated {
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
-}
+button, input, a { font-family: inherit; }
+button { cursor: pointer; }
+a { color: #7FE0EF; }
+a:hover { color: #A8ECF6; }
 
-/* Caja estilo diálogo de GameBoy: doble borde negro/crema */
-.gb-box {
-  background: var(--gb-cream);
-  border: 3px solid var(--gb-ink);
+/* Foco de teclado: el cian es el único acento no semántico. */
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- Primitivas tipográficas ---------- */
+.display { font-family: var(--font-display); }
+.mono { font-family: var(--font-mono); }
+
+/* Etiqueta mono en mayúsculas, tracking 0.18em (RÁPIDO, CARGADOS, EQUIPO RIVAL...) */
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+/* 18 px de alto: así las fichas rival arrancan en y = 60 + 18 + 89 = 167, la
+   misma distancia al borde que las tuyas (1080 - 20 - 147 = 913). */
+.label--rail { font-size: 10.5px; color: #8B94A0; display: block; line-height: 18px; }
+
+/* Ficha de tecla: "Ctrl A", "Esc" */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
   border-radius: 6px;
-  box-shadow:
-    inset 0 0 0 2px var(--gb-cream-dark),
-    2px 2px 0 rgba(0, 0, 0, 0.35);
+  background: rgba(255,255,255,0.07);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #C3CAD3;
+  white-space: nowrap;
+}
+.kbd--sm { height: 22px; padding: 0 8px; font-size: 11px; }
+
+/* Chip de tipo */
+.type-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.type-chip--header { height: 24px; padding: 0 10px; }
+.type-chip--weak { font-size: 10.5px; }
+.type-chip--search { height: 22px; padding: 0 9px; border-radius: 6px; }
+
+/* Píldora de energía / turnos */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.pill__value {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #D3D9E0;
 }
 
-.gb-box-dark {
-  background: #2b2f3a;
-  border: 3px solid #0a0b0d;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 2px #454b5c;
+/* Multiplicador (38 px) y su columna fija de 96 px */
+.mult {
+  width: 96px;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.mult--good { color: var(--green); }
+.mult--bad { color: var(--red); }
+.mult--neutral { color: var(--neutral); }
+
+.power {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 96px;
+  flex-shrink: 0;
+}
+.power__value {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--neutral);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+.power__label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink-5);
 }
 
-.battle-bg {
-  background: linear-gradient(
-    180deg,
-    var(--sky-top) 0%,
-    var(--sky-top) 40%,
-    var(--sky-bottom) 40%,
-    var(--grass) 100%
-  );
+/* Fila de ataque */
+.move-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 60px;
+}
+.move-row--hairline { box-shadow: inset 0 -1px 0 rgba(255,255,255,0.07); }
+.move-row--danger {
+  padding: 0 10px;
+  margin: 0 -10px;
+  background: rgba(255,107,107,0.10);
+}
+.move-row__name {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  flex-grow: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Plataforma ovalada de combate, estilo arena de Pokémon. */
-.battle-platform {
-  background: radial-gradient(ellipse at center, #ffffff55 0%, #00000022 70%, transparent 100%);
-  border: 3px solid rgba(0, 0, 0, 0.25);
-  border-radius: 50%;
+/* Caja de stats */
+.stats {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 600px;
+  padding: 22px 24px 24px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.045);
+}
+.stats--rival { margin-left: 46px; clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px); }
+.stats--vos { margin-right: 46px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%); }
+.stats__edge--rival {
+  position: absolute; left: 24px; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.05) 100%);
+}
+.stats__edge--vos {
+  position: absolute; left: 0; right: 24px; bottom: 0; height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.34) 100%);
+}
+.stats--empty {
+  justify-content: center;
+  gap: 14px;
+  height: 300px;
+  background: rgba(255,255,255,0.022);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07);
+}
+.stats__side-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: #C3CAD3;
+}
+.stats__name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.stats__divider { height: 1px; background: rgba(255,255,255,0.10); margin: 16px 0 4px; }
+
+/* Conector caja → plataforma */
+.connector { display: flex; align-items: center; flex-grow: 1; min-width: 0; }
+.connector__tick { width: 2px; height: 28px; background: rgba(255,255,255,0.42); flex-shrink: 0; }
+.connector__line { height: 2px; flex-grow: 1; }
+.connector__line--rival { background: linear-gradient(90deg, rgba(255,255,255,0.42) 0%, rgba(255,190,190,0.30) 100%); }
+.connector__line--vos { background: linear-gradient(90deg, rgba(190,215,245,0.30) 0%, rgba(255,255,255,0.42) 100%); }
+.connector__diamond { width: 12px; height: 12px; transform: rotate(45deg); flex-shrink: 0; }
+.connector--dim .connector__tick { background: rgba(255,255,255,0.14); }
+.connector--dim .connector__line--rival { background: linear-gradient(90deg, rgba(255,255,255,0.14) 0%, rgba(255,190,190,0.08) 100%); }
+.connector--dim .connector__line--vos { background: linear-gradient(90deg, rgba(190,215,245,0.08) 0%, rgba(255,255,255,0.14) 100%); }
+.connector--dim .connector__diamond { background: rgba(255,255,255,0.18) !important; }
+
+/* Fichas de equipo (118 px) */
+.card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 118px;
+  padding: 0 14px;
+  border: 0;
+  color: var(--ink-1);
+  text-align: left;
+}
+.card--rival { clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px); }
+.card--vos { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
+.card--active { background: rgba(255,255,255,0.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16); }
+.card--bench { background: rgba(255,255,255,0.03); color: var(--ink-2); opacity: 0.85; }
+.card__sprite { width: 84px; height: 84px; image-rendering: pixelated; flex-shrink: 0; }
+.card__name { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card__status { display: flex; align-items: center; gap: 6px; }
+.card__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.card__status-text { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.09em; }
+.card--empty {
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed rgba(255,255,255,0.15);
+  background: transparent;
+  color: #8B94A0;
+  font-size: 15px;
+  font-weight: 500;
+}
+/* El clip-path recorta el borde punteado en la esquina cortada: es lo dibujado. */
+
+/* Botones del encabezado y de las cajas */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.065);
+  color: var(--ink-1);
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn--league {
+  gap: 10px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.055);
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+.btn--icon { justify-content: center; width: 44px; padding: 0; }
+.btn--box { height: 46px; gap: 10px; font-size: 15px; background: rgba(255,255,255,0.07); }
+.btn--primary { background: var(--ink-1); color: #0B0D11; }
+.btn--ghost { background: transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14); color: var(--ink-2); }
+.btn--cut {
+  border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
 }
 
-@keyframes pulse-ring {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 2px var(--gb-ink),
-      0 0 0 5px #ffd23f;
-  }
-  50% {
-    box-shadow:
-      0 0 0 2px var(--gb-ink),
-      0 0 0 8px #ffd23f;
-  }
+/* Tarjeta modal (onboarding, recorrido, buscador, edición de atajo): superficie #12151A, esquina cortada, filo de luz */
+.panel {
+  position: relative;
+  background: var(--surface);
+  box-shadow: 0 48px 130px rgba(0,0,0,0.72), inset 0 0 0 1px rgba(255,255,255,0.09);
+}
+.panel--cut-28 { clip-path: polygon(28px 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%); }
+.panel--cut-18 { clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%, 0 18px); box-shadow: 0 34px 90px rgba(0,0,0,0.66), inset 0 0 0 1px rgba(255,255,255,0.09); }
+.panel__edge {
+  position: absolute; left: 28px; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.05) 100%);
 }
 
-.recommended-ring {
-  animation: pulse-ring 1.4s ease-in-out infinite;
+.veil { position: absolute; inset: 0; background: rgba(6,7,9,0.72); }
+
+/* Lector de pantalla */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
 }
 
-.pixel-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Filas del buscador */
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 66px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: #D3D9E0;
+  text-align: left;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
 }
-.pixel-scroll::-webkit-scrollbar-thumb {
-  background: var(--gb-ink);
-  border-radius: 3px;
+.search-row--current { background: rgba(255,255,255,0.065); color: var(--ink-1); }
+.search-row__sprite { width: 44px; height: 44px; image-rendering: pixelated; flex-shrink: 0; }
+.search-row__name { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; flex-grow: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Filas de configuración (56 px, la fila entera es el botón) */
+.cfg-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  border: 0;
+  background: rgba(255,255,255,0.035);
+  color: var(--ink-1);
+  text-align: left;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
 }
+.cfg-row:hover { background: rgba(255,255,255,0.06); }
+.cfg-row--fixed { background: rgba(255,255,255,0.02); color: var(--ink-3); cursor: default; }
+.cfg-row__label { font-size: 16.5px; font-weight: 500; letter-spacing: -0.01em; flex-grow: 1; min-width: 0; }
+.cfg-row .kbd { height: 28px; padding: 0 11px; border-radius: 7px; background: rgba(255,255,255,0.08); font-size: 12.5px; color: #DDE2E8; }
+.cfg-row--fixed .kbd { background: rgba(255,255,255,0.05); color: var(--ink-3); }
+
+/* Scroll interno del buscador */
+.scroll-list { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }

@@ -1,20 +1,24 @@
-import { TYPE_COLORS, type PokemonType } from "@/lib/types";
+import { typeStyle } from "@/lib/typeStyles";
 import { typeLabelEs } from "@/lib/typeLabels";
 
 export function TypeChip({
   type,
-  size = "md",
+  variant = "row",
 }: {
   type: string;
-  size?: "sm" | "md";
+  variant?: "row" | "header" | "weak" | "search";
 }) {
-  const color = TYPE_COLORS[type as PokemonType] ?? "#888";
-  const padding = size === "sm" ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-1 text-[9px]";
+  const s = typeStyle(type);
+  const cls =
+    variant === "header"
+      ? "type-chip type-chip--header"
+      : variant === "weak"
+        ? "type-chip type-chip--weak"
+        : variant === "search"
+          ? "type-chip type-chip--search"
+          : "type-chip";
   return (
-    <span
-      className={`inline-block rounded border-2 border-black uppercase tracking-tight text-white ${padding}`}
-      style={{ backgroundColor: color, textShadow: "1px 1px 0 rgba(0,0,0,0.4)" }}
-    >
+    <span className={cls} style={{ background: s.bg, color: s.fg }}>
       {typeLabelEs(type)}
     </span>
   );
@@ -22,17 +26,19 @@ export function TypeChip({
 
 export function TypeChips({
   types,
-  size = "md",
+  variant = "header",
+  gap = 5,
 }: {
   types: readonly (string | null | undefined)[];
-  size?: "sm" | "md";
+  variant?: "row" | "header" | "weak" | "search";
+  gap?: number;
 }) {
   const valid = types.filter((t): t is string => !!t && t !== "none");
   return (
-    <div className="flex gap-1 flex-wrap">
+    <span style={{ display: "flex", gap }}>
       {valid.map((t) => (
-        <TypeChip key={t} type={t} size={size} />
+        <TypeChip key={t} type={t} variant={variant} />
       ))}
-    </div>
+    </span>
   );
 }

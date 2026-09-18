@@ -9,7 +9,8 @@
     "lint": "eslint",
     "build-data": "node scripts/build-data.mjs",
     "build-sprites": "node scripts/build-sprites.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build-sprites-pixel": "node scripts/build-sprites-pixel.mjs"
   },
   "dependencies": {
     "next": "16.3.5",
