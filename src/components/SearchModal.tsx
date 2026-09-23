@@ -15,6 +15,9 @@ const MAX_ROWS = 8;
  * cortadas, superficies por valor). Con la búsqueda vacía muestra los más
  * usados de la liga activa (orden del ranking de PvPoke). Flechas navegan,
  * Enter agrega, Tab cambia de bando, Esc cierra (lo maneja el atajo fijo).
+ *
+ * Una sola Mega por equipo: si ese lado ya tiene una (`hideMegas`), las Megas
+ * y Primales se sacan del listado antes de cortarlo, y el pie lo avisa.
  */
 export function SearchModal({
   side,
@@ -22,6 +25,7 @@ export function SearchModal({
   addCombo,
   closeCombo,
   teamFull,
+  hideMegas,
   onPick,
   onSwitchSide,
 }: {
@@ -30,6 +34,7 @@ export function SearchModal({
   addCombo: Combo | null;
   closeCombo: Combo | null;
   teamFull: boolean;
+  hideMegas: boolean;
   onPick: (p: Pokemon) => void;
   onSwitchSide: () => void;
 }) {
@@ -42,10 +47,12 @@ export function SearchModal({
     inputRef.current?.focus();
   }, []);
 
-  const results = useMemo(() => {
+  const { results, hiddenMegas } = useMemo(() => {
     const pool = query.trim() ? searchPokemon(query, league) : getPokemonForLeague(league);
-    return pool.slice(0, 40);
-  }, [query, league]);
+    const allowed = hideMegas ? pool.filter((p) => !p.mega) : pool;
+    return { results: allowed.slice(0, 40), hiddenMegas: pool.length - allowed.length };
+  }, [query, league, hideMegas]);
+  const megaNote = side === "rival" ? "EL RIVAL YA TIENE SU MEGA" : "YA TENÉS UNA MEGA";
 
   const clampedCursor = Math.min(cursor, Math.max(0, results.length - 1));
 
@@ -134,7 +141,11 @@ export function SearchModal({
 
         <div ref={listRef} className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: MAX_ROWS * 66 + (MAX_ROWS - 1) * 4 }}>
           {results.length === 0 && (
-            <span style={{ padding: "18px 14px", fontSize: 15, color: "#9CA6B2" }}>Ningún Pokémon con ese nombre en esta liga.</span>
+            <span style={{ padding: "18px 14px", fontSize: 15, color: "#9CA6B2" }}>
+              {hiddenMegas > 0
+                ? "Solo se permite una Mega por equipo, y este ya tiene la suya."
+                : "Ningún Pokémon con ese nombre en esta liga."}
+            </span>
           )}
           {results.map((p, i) => (
             <button
@@ -162,10 +173,16 @@ export function SearchModal({
           <Hint keys="↑↓" text="NAVEGAR" />
           <Hint keys="↵" text="AGREGAR AL EQUIPO" />
           <Hint keys="Tab" text={side === "rival" ? "CAMBIAR A ALIADO" : "CAMBIAR A ENEMIGO"} />
-          {teamFull && (
+          {teamFull ? (
             <span className="mono" style={{ marginLeft: "auto", fontSize: 10.5, letterSpacing: "0.08em", color: "#FFC2C2" }}>
               EQUIPO COMPLETO · QUITÁ UNO PRIMERO
             </span>
+          ) : (
+            hiddenMegas > 0 && (
+              <span className="mono" style={{ marginLeft: "auto", fontSize: 10.5, letterSpacing: "0.08em", color: "#A8B0BB" }}>
+                {megaNote} · UNA POR EQUIPO
+              </span>
+            )
           )}
         </div>
       </div>

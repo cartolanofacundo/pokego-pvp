@@ -89,6 +89,10 @@ Showdown no les dibujó una propia.
   combates y sesiones (`localStorage`).
 - **El mismo Pokémon dos veces**: permitido. Nunca más de tres por lado; con el
   equipo completo el buscador lo avisa y no agrega.
+- **Una sola Mega por equipo**, contando los Primales, como en el juego. Si
+  un lado ya tiene una, el buscador de ese lado deja de mostrar Megas y el pie
+  lo avisa. Vale igual para tu equipo y para el del rival. La marca sale de la
+  etiqueta `mega` de PvPoke.
 - **Datos faltantes**: un Pokémon sin ataques en el gamemaster se muestra con
   tipos y debilidades y un estado vacío explícito en el bloque de ataques.
 - **Recorrido guiado**: cada paso se apoya sobre la pantalla del estado que

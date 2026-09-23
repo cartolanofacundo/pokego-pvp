@@ -125,6 +125,9 @@ async function main() {
       dex: gmEntry.dex,
       types: [gmEntry.types?.[0] ?? "none", gmEntry.types?.[1] ?? "none"],
       shadow: speciesId.endsWith("_shadow"),
+      // Megas y Primales: PvPoke les pone la etiqueta "mega". Solo se permite
+      // una por equipo, así que el buscador las esconde cuando ya hay una.
+      mega: (gmEntry.tags ?? []).includes("mega"),
       fastMoves: gmEntry.fastMoves ?? [],
       chargedMoves: gmEntry.chargedMoves ?? [],
       eliteMoves: gmEntry.eliteMoves ?? [],

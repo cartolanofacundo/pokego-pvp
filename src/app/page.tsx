@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getPokemon, LEAGUES, type LeagueKey, type Pokemon } from "@/lib/data";
+import { getPokemon, LEAGUES, teamHasMega, type LeagueKey, type Pokemon } from "@/lib/data";
 import { loadJSON, saveJSON } from "@/lib/storage";
 import {
   combosEqual,
@@ -137,6 +137,9 @@ export default function Home() {
         const activeIdx = side === "rival" ? s.enemyActiveIndex : s.activeIndex;
         const target = slot !== null && !ids[slot] ? slot : ids.findIndex((id) => id === null);
         if (target === -1) return {};
+        // Una sola Mega por equipo: el buscador ya las esconde, esto cubre
+        // cualquier otro camino que intente sumar una segunda.
+        if (getPokemon(speciesId)?.mega && teamHasMega(ids)) return {};
         ids[target] = speciesId;
         // El rival recién cargado es el que está en cancha. El aliado solo
         // toma el campo si no había nadie activo.
@@ -254,6 +257,9 @@ export default function Home() {
   const searchTeamFull = modal?.kind === "search" && modal.slot === null
     ? (modal.side === "rival" ? state.enemyTeam : state.team).every((id) => id !== null)
     : false;
+  const searchHideMegas = modal?.kind === "search"
+    ? teamHasMega(modal.side === "rival" ? state.enemyTeam : state.team)
+    : false;
 
   return (
     <Viewport>
@@ -288,6 +294,7 @@ export default function Home() {
           addCombo={modal.side === "rival" ? shortcuts.addRival : shortcuts.addAlly}
           closeCombo={shortcuts.close}
           teamFull={searchTeamFull}
+          hideMegas={searchHideMegas}
           onPick={(p) => addPokemon(modal.side, p.speciesId, modal.slot)}
           onSwitchSide={() => setModal({ kind: "search", side: modal.side === "rival" ? "ally" : "rival", slot: null })}
         />

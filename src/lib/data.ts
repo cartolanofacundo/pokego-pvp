@@ -33,6 +33,8 @@ export interface Pokemon {
   dex: number;
   types: [string, string];
   shadow: boolean;
+  /** Mega o Primal (etiqueta "mega" de PvPoke). Solo una por equipo. */
+  mega: boolean;
   fastMoves: string[];
   chargedMoves: string[];
   eliteMoves: string[];
@@ -65,6 +67,14 @@ const byId = new Map(POKEMON.map((p) => [p.speciesId, p]));
 
 export function getPokemon(speciesId: string): Pokemon | undefined {
   return byId.get(speciesId);
+}
+
+/**
+ * Regla de GO Battle League: una sola Mega (o Primal) por equipo. Se evalúa
+ * por lado, así que vale igual para tu equipo y para el del rival.
+ */
+export function teamHasMega(ids: readonly (string | null)[]): boolean {
+  return ids.some((id) => (id ? getPokemon(id)?.mega === true : false));
 }
 
 export function getMove(moveId: string): Move | undefined {
@@ -101,6 +111,7 @@ export const NEUTRAL_OPPONENT: Pokemon = {
   dex: 0,
   types: ["none", "none"],
   shadow: false,
+  mega: false,
   fastMoves: [],
   chargedMoves: [],
   eliteMoves: [],
