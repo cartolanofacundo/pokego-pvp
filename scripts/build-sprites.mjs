@@ -58,6 +58,9 @@ function spriteFileName(entry) {
   if (entry.__override) return entry.__override;
   if (entry.baseSpecies) {
     const base = toID(entry.baseSpecies);
+    // Las Megas con variante X/Y van pegadas en el CDN: "Mega-X" -> "megax"
+    // (charizard-megax.gif), a diferencia de las demás formas compuestas.
+    if (/^Mega-[XY]$/.test(entry.forme)) return `${base}-${toID(entry.forme)}`;
     const formeSegs = entry.forme.split("-").map(toID).filter(Boolean);
     return [base, ...formeSegs].join("-");
   }

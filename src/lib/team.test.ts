@@ -2,34 +2,34 @@ import { describe, it, expect } from "vitest";
 import { getPokemon } from "./data";
 import { rankTeamAgainst } from "./team";
 
-describe("rankTeamAgainst (con datos reales de PvPoke)", () => {
-  const azumarill = getPokemon("azumarill")!;
-  const medicham = getPokemon("medicham")!;
+describe("rankTeamAgainst (con datos reales de PvPoke, Ultra League)", () => {
+  const lapras = getPokemon("lapras")!;
+  const annihilape = getPokemon("annihilape")!;
   const skarmory = getPokemon("skarmory")!;
   const altaria = getPokemon("altaria")!;
   const melmetal = getPokemon("melmetal")!;
-  const team = [azumarill, medicham, skarmory];
+  const team = [lapras, annihilape, skarmory];
 
-  it("recomienda a Azumarill primero contra Altaria (Ice Beam x2.56)", () => {
-    const ranked = rankTeamAgainst(team, altaria, "great");
+  it("recomienda a Lapras primero contra Altaria (Ice Beam x2.56)", () => {
+    const ranked = rankTeamAgainst(team, altaria, "ultra");
     const bySpecies = Object.fromEntries(ranked.map((r) => [r!.speciesId, r!]));
 
-    expect(bySpecies.azumarill.label).toBe("best");
-    expect(bySpecies.azumarill.bestAttack).toBe("Ice Beam");
-    // Azumarill debe tener el mayor puntaje total del equipo.
+    expect(bySpecies.lapras.label).toBe("best");
+    expect(bySpecies.lapras.bestAttack).toBe("Ice Beam");
+    // Lapras debe tener el mayor puntaje total del equipo.
     const top = [...ranked].sort((a, b) => b!.total - a!.total)[0];
-    expect(top!.speciesId).toBe("azumarill");
+    expect(top!.speciesId).toBe("lapras");
   });
 
-  it("recomienda a Medicham primero contra Melmetal (lucha x1.6 vs acero) y dice Azumarill al final", () => {
-    const ranked = rankTeamAgainst(team, melmetal, "great");
+  it("recomienda a Skarmory primero contra Melmetal (Drill Run, tierra x1.6 vs acero) y deja a Lapras al final", () => {
+    const ranked = rankTeamAgainst(team, melmetal, "ultra");
     const bySpecies = Object.fromEntries(ranked.map((r) => [r!.speciesId, r!]));
 
-    expect(bySpecies.medicham.label).toBe("best");
-    expect(bySpecies.medicham.bestAttack).toBe("Dynamic Punch");
+    expect(bySpecies.skarmory.label).toBe("best");
+    expect(bySpecies.skarmory.bestAttack).toBe("Drill Run");
 
     const sorted = [...ranked].sort((a, b) => b!.total - a!.total);
-    expect(sorted[0]!.speciesId).toBe("medicham");
-    expect(sorted[sorted.length - 1]!.speciesId).toBe("azumarill");
+    expect(sorted[0]!.speciesId).toBe("skarmory");
+    expect(sorted[sorted.length - 1]!.speciesId).toBe("lapras");
   });
 });

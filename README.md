@@ -28,7 +28,7 @@ npm run build-sprites       # Pokémon Showdown, GIF animados de frente y espald
 npm run build-sprites-pixel # PokeAPI, pixel art 96 px -> public/sprites/pixel/
 ```
 
-- **PvPoke** (`gamemaster.json` y `rankings-{1500,2500,10000}.json`): tipos,
+- **PvPoke** (`gamemaster.json` y los rankings de cada copa): tipos,
   movimientos (poder, energía, ganancia, turnos), moveset recomendado por liga,
   orden de uso ("más usados") y rating de matchups/counters.
 - **Pokémon Showdown**: sprites de campo. El rival de frente (410 px) y el
@@ -37,6 +37,35 @@ npm run build-sprites-pixel # PokeAPI, pixel art 96 px -> public/sprites/pixel/
   cual, sin `pixelated`.
 - **PokeAPI**: pixel art de 96 px para las fichas de equipo (84 px) y el
   buscador (44 px), con `image-rendering: pixelated` a propósito.
+
+### Ligas
+
+Las de la temporada vigente de GO Battle League. Cada una sale de su propio
+ranking de PvPoke (`rankings/<copa>/overall/rankings-<cp>.json`):
+
+| Liga | Copa de PvPoke | CP | Reglas |
+| --- | --- | --- | --- |
+| Ultra League | `all` | 2500 | abierta |
+| Master League Mega Edition | `mega` | 10000 | admite Megas y Primales |
+| Retro Cup | `retro` | 1500 | sin siniestro, hada ni acero, sin Megas |
+
+Las reglas de cada copa ya vienen aplicadas en los rankings: una especie solo
+tiene datos en las ligas donde es legal, así que el buscador de cada liga se
+filtra solo. Las Megas y Primales aparecen solo en Master League Mega Edition.
+
+**Cambiar la rotación**: editar la lista `LEAGUES` en
+`scripts/build-data.mjs` y en `src/lib/data.ts` (mismas claves, en el mismo
+orden), y correr los tres scripts de arriba. Los de sprites saltean los
+archivos que ya existen, así que solo bajan las especies nuevas.
+
+Las especies que quedaron fuera de todas las ligas vigentes (47 al pasar de
+Great/Ultra/Master a esta rotación) no tienen datos, pero sus sprites se
+conservan en `public/sprites/` por si esas ligas vuelven. Un equipo guardado
+con alguna de ellas carga igual: ese hueco queda vacío.
+
+Ocho Megas recientes (Chesnaught, Delphox, Greninja, Falinks, Malamar,
+Staraptor y Raichu X e Y) usan la espalda animada de la especie base, porque
+Showdown no les dibujó una propia.
 
 ## Decisiones documentadas (las que el brief pedía definir)
 

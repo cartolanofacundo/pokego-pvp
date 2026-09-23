@@ -5,12 +5,15 @@ import pokemonRaw from "@/data/pokemon.json";
 import movesRaw from "@/data/moves.json";
 import metaRaw from "@/data/meta.json";
 
-export type LeagueKey = "great" | "ultra" | "master";
+// Ligas de la temporada vigente de GO Battle League, en el orden en que las
+// recorre el selector. Espejo de LEAGUES en scripts/build-data.mjs: al cambiar
+// la rotación se editan las dos listas y se corre `npm run build-data`.
+export type LeagueKey = "ultra" | "megamaster" | "retro";
 
 export const LEAGUES: { key: LeagueKey; label: string; cp: number }[] = [
-  { key: "great", label: "Great League", cp: 1500 },
   { key: "ultra", label: "Ultra League", cp: 2500 },
-  { key: "master", label: "Master League", cp: 10000 },
+  { key: "megamaster", label: "Master League Mega Edition", cp: 10000 },
+  { key: "retro", label: "Retro Cup", cp: 1500 },
 ];
 
 export interface LeagueStats {

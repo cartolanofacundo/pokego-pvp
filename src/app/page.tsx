@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getPokemon, type LeagueKey, type Pokemon } from "@/lib/data";
+import { getPokemon, LEAGUES, type LeagueKey, type Pokemon } from "@/lib/data";
 import { loadJSON, saveJSON } from "@/lib/storage";
 import {
   combosEqual,
@@ -22,7 +22,7 @@ import { Viewport } from "@/components/Viewport";
 
 const STORAGE_KEY = "pokego-pvp:v3";
 const ONBOARDED_KEY = "pokego-pvp:onboarded:v1";
-const LEAGUE_ORDER: LeagueKey[] = ["great", "ultra", "master"];
+const LEAGUE_ORDER: LeagueKey[] = LEAGUES.map((l) => l.key);
 
 interface Persisted {
   league: LeagueKey;
@@ -33,7 +33,7 @@ interface Persisted {
 }
 
 const EMPTY: Persisted = {
-  league: "great",
+  league: LEAGUE_ORDER[0],
   team: [null, null, null],
   activeIndex: 0,
   enemyTeam: [null, null, null],
@@ -49,14 +49,23 @@ type Tour = { kind: "welcome" } | { kind: "coach"; step: number } | null;
 // Pokémon que las mesas de trabajo. Al terminar se vuelve al estado real.
 function demoState(step: number, league: LeagueKey): Persisted {
   if (step <= 2) return { ...EMPTY, league };
-  if (step === 3) return { ...EMPTY, league, team: ["azumarill", "medicham", null], activeIndex: 0 };
+  if (step === 3) return { ...EMPTY, league, team: ["lapras", "annihilape", null], activeIndex: 0 };
+  // Elenco rankeado en las tres ligas vigentes, así el recorrido se ve completo
+  // en cualquiera. Rillaboom le pega x1.6 a Lapras: es el triángulo del paso 4.
   return {
     league,
-    team: ["azumarill", "medicham", null],
+    team: ["lapras", "annihilape", null],
     activeIndex: 0,
-    enemyTeam: ["melmetal", "altaria", "skarmory"],
+    enemyTeam: ["rillaboom", "regidrago", "raikou"],
     enemyActiveIndex: 0,
   };
+}
+
+// Un id guardado puede dejar de existir cuando cambia la rotación de ligas
+// (por ejemplo, una especie que solo estaba en Great League): se vacía el hueco.
+function knownIds(ids: (string | null)[] | undefined, fallback: (string | null)[]): (string | null)[] {
+  if (ids?.length !== 3) return fallback;
+  return ids.map((id) => (id && getPokemon(id) ? id : null));
 }
 
 function resolveTeam(ids: (string | null)[]): (Pokemon | null)[] {
@@ -76,10 +85,10 @@ export default function Home() {
   useEffect(() => {
     const saved = loadJSON<Persisted>(STORAGE_KEY, EMPTY);
     setState({
-      league: LEAGUE_ORDER.includes(saved.league) ? saved.league : "great",
-      team: saved.team?.length === 3 ? saved.team : EMPTY.team,
+      league: LEAGUE_ORDER.includes(saved.league) ? saved.league : LEAGUE_ORDER[0],
+      team: knownIds(saved.team, EMPTY.team),
       activeIndex: saved.activeIndex ?? 0,
-      enemyTeam: saved.enemyTeam?.length === 3 ? saved.enemyTeam : EMPTY.enemyTeam,
+      enemyTeam: knownIds(saved.enemyTeam, EMPTY.enemyTeam),
       enemyActiveIndex: saved.enemyActiveIndex ?? 0,
     });
     setShortcuts(loadShortcuts());

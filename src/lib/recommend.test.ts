@@ -24,28 +24,28 @@ describe("formatMult", () => {
 });
 
 describe("analyzeMoveset (con datos reales de PvPoke)", () => {
-  it("recomienda Ice Beam sobre Play Rough para Azumarill vs Altaria en Great League", () => {
-    const azumarill = getPokemon("azumarill")!;
+  it("recomienda Ice Beam sobre Sparkling Aria para Lapras vs Altaria en Ultra League", () => {
+    const lapras = getPokemon("lapras")!;
     const altaria = getPokemon("altaria")!;
-    expect(azumarill).toBeDefined();
+    expect(lapras).toBeDefined();
     expect(altaria).toBeDefined();
 
-    const analysis = analyzeMoveset(azumarill, altaria, "great");
+    const analysis = analyzeMoveset(lapras, altaria, "ultra");
     expect(analysis.best?.moveId).toBe("ICE_BEAM");
 
-    const playRough = analysis.charged.find((m) => m.moveId === "PLAY_ROUGH");
-    expect(playRough?.tier).toBe("super"); // x1.6 (fairy vs dragón/volador)
+    const aria = analysis.charged.find((m) => m.moveId === "SPARKLING_ARIA");
+    expect(aria?.tier).toBe("resisted"); // x0.625 (agua vs dragón)
 
     const iceBeam = analysis.charged.find((m) => m.moveId === "ICE_BEAM");
     expect(iceBeam?.tier).toBe("double-super"); // x2.56 (hielo vs dragón/volador)
-    expect(iceBeam!.score).toBeGreaterThan(playRough!.score);
+    expect(iceBeam!.score).toBeGreaterThan(aria!.score);
   });
 
   it("dentro del moveset recomendado, prefiere Double Iron Bash (STAB neutral) sobre Dynamic Punch (resistido)", () => {
     const melmetal = getPokemon("melmetal")!;
     const altaria = getPokemon("altaria")!;
 
-    const analysis = analyzeMoveset(melmetal, altaria, "great");
+    const analysis = analyzeMoveset(melmetal, altaria, "ultra");
     expect(analysis.best?.moveId).toBe("DOUBLE_IRON_BASH");
 
     const dynamicPunch = analysis.charged.find((m) => m.moveId === "DYNAMIC_PUNCH");
@@ -56,7 +56,7 @@ describe("analyzeMoveset (con datos reales de PvPoke)", () => {
     const melmetal = getPokemon("melmetal")!;
     const altaria = getPokemon("altaria")!;
 
-    const analysis = analyzeMoveset(melmetal, altaria, "great");
+    const analysis = analyzeMoveset(melmetal, altaria, "ultra");
     const dib = analysis.charged.find((m) => m.moveId === "DOUBLE_IRON_BASH")!;
     const rockSlide = analysis.otherCharged.find((m) => m.moveId === "ROCK_SLIDE")!;
 

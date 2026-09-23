@@ -11,13 +11,18 @@ const OUT_DIR = path.join(__dirname, "..", "src", "data");
 
 const GM_URL =
   "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster.json";
-const RANKINGS_URL = (cp) =>
-  `https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-${cp}.json`;
+const RANKINGS_URL = (cup, cp) =>
+  `https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/${cup}/overall/rankings-${cp}.json`;
 
+// Ligas de la temporada vigente de GO Battle League. `cup` es el id de copa
+// de PvPoke (ver `formats` en su gamemaster): "all" es la liga abierta.
+// Al cambiar la rotación se edita esta lista y la de src/lib/data.ts (LEAGUES).
+// Las reglas de cada copa (tipos prohibidos, Megas) ya vienen aplicadas en los
+// rankings de PvPoke: una especie solo tiene datos en las ligas donde es legal.
 const LEAGUES = [
-  { key: "great", cp: 1500 },
-  { key: "ultra", cp: 2500 },
-  { key: "master", cp: 10000 },
+  { key: "ultra", cup: "all", cp: 2500, title: "Ultra League" },
+  { key: "megamaster", cup: "mega", cp: 10000, title: "Master League Mega Edition" },
+  { key: "retro", cup: "retro", cp: 1500, title: "Retro Cup" },
 ];
 
 async function fetchJson(url) {
@@ -26,19 +31,15 @@ async function fetchJson(url) {
   return res.json();
 }
 
-function isMega(speciesId) {
-  return speciesId.includes("_mega");
-}
-
 async function main() {
   console.log("Descargando gamemaster de PvPoke...");
   const gm = await fetchJson(GM_URL);
 
   console.log("Descargando rankings por liga...");
   const rankingsByLeague = {};
-  for (const { key, cp } of LEAGUES) {
-    rankingsByLeague[key] = await fetchJson(RANKINGS_URL(cp));
-    console.log(`  ${key} (cp${cp}): ${rankingsByLeague[key].length} entradas`);
+  for (const { key, cup, cp } of LEAGUES) {
+    rankingsByLeague[key] = await fetchJson(RANKINGS_URL(cup, cp));
+    console.log(`  ${key} (${cup}, cp${cp}): ${rankingsByLeague[key].length} entradas`);
   }
 
   // ---- moves.json ----
@@ -61,11 +62,11 @@ async function main() {
   // ---- pokemon.json ----
   const gmBySpecies = new Map(gm.pokemon.map((p) => [p.speciesId, p]));
 
-  // Unimos todos los speciesId que aparecen en al menos una liga, sin Mega.
+  // Unimos todos los speciesId que aparecen en al menos una liga. Las Megas y
+  // Primales entran solo si alguna copa las admite (hoy, Master League Mega).
   const speciesIds = new Set();
   for (const { key } of LEAGUES) {
     for (const entry of rankingsByLeague[key]) {
-      if (isMega(entry.speciesId)) continue;
       speciesIds.add(entry.speciesId);
     }
   }
@@ -143,6 +144,9 @@ async function main() {
   const meta = {
     generatedAt: new Date().toISOString(),
     gamemasterTimestamp: gm.timestamp ?? null,
+    leagues: LEAGUES.map(({ key, cup, cp, title }) => ({
+      key, cup, cp, title, count: rankingsByLeague[key].length,
+    })),
     pokemonCount: pokemon.length,
     moveCount: Object.keys(moves).length,
   };

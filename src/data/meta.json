@@ -1,6 +1,29 @@
 {
-  "generatedAt": "2026-09-17T01:30:53.724Z",
-  "gamemasterTimestamp": "2026-09-16 18:53:38",
-  "pokemonCount": 1200,
+  "generatedAt": "2026-09-22T23:06:44.803Z",
+  "gamemasterTimestamp": "2026-09-18 15:44:18",
+  "leagues": [
+    {
+      "key": "ultra",
+      "cup": "all",
+      "cp": 2500,
+      "title": "Ultra League",
+      "count": 844
+    },
+    {
+      "key": "megamaster",
+      "cup": "mega",
+      "cp": 10000,
+      "title": "Master League Mega Edition",
+      "count": 467
+    },
+    {
+      "key": "retro",
+      "cup": "retro",
+      "cp": 1500,
+      "title": "Retro Cup",
+      "count": 941
+    }
+  ],
+  "pokemonCount": 1214,
   "moveCount": 352
 }

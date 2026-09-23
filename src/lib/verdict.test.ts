@@ -4,23 +4,25 @@ import { verdict } from "./verdict";
 import { weaknessesTop3 } from "./weakness";
 
 describe("verdict (semáforo de banca, con datos reales de PvPoke)", () => {
-  const azumarill = getPokemon("azumarill")!;
-  const altaria = getPokemon("altaria")!;
+  const lapras = getPokemon("lapras")!;
+  const feraligatr = getPokemon("feraligatr")!;
   const melmetal = getPokemon("melmetal")!;
   const skarmory = getPokemon("skarmory")!;
+  const annihilape = getPokemon("annihilape")!;
+  const tinkaton = getPokemon("tinkaton")!;
 
   it("usa el rating de PvPoke cuando el par está rankeado", () => {
-    // Azumarill tiene a Altaria en sus matchups (646) y a Melmetal en sus counters (321).
-    expect(verdict(azumarill, altaria, "great")).toBe("win");
-    expect(verdict(azumarill, melmetal, "great")).toBe("lose");
-    // Skarmory vs Melmetal: counter con rating 157.
-    expect(verdict(skarmory, melmetal, "great")).toBe("lose");
+    // En Ultra League, Lapras tiene a Feraligatr en sus matchups (610) y a Melmetal en sus counters (315).
+    expect(verdict(lapras, feraligatr, "ultra")).toBe("win");
+    expect(verdict(lapras, melmetal, "ultra")).toBe("lose");
+    // Annihilape vs Tinkaton: counter con rating 306.
+    expect(verdict(annihilape, tinkaton, "ultra")).toBe("lose");
   });
 
   it("cae a la heurística de tipos cuando PvPoke no rankea el par", () => {
-    // Melmetal no aparece en el ranking de Skarmory ni al revés en Master League.
-    // Skarmory (acero/volador) recibe Thunder Shock x2.56; sus voladores pegan x1 a Melmetal.
-    const r = verdict(skarmory, melmetal, "master");
+    // Melmetal no aparece en el ranking de Skarmory ni al revés en Ultra League.
+    // Skarmory (acero/volador) recibe Thunder Shock x1.6; sus voladores pegan x1 a Melmetal.
+    const r = verdict(skarmory, melmetal, "ultra");
     expect(["lose", "even"]).toContain(r);
   });
 });
