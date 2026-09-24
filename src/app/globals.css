@@ -465,3 +465,95 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Scroll interno del buscador */
 .scroll-list { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }
+
+/* ---------- Menú de secciones ---------- */
+.nav-link {
+  display: inline-flex; align-items: center; height: 34px; padding: 0 12px;
+  border-radius: 8px; font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--ink-3); text-decoration: none;
+  transition: background-color 100ms var(--ease), color 100ms var(--ease);
+}
+.nav-link:hover { background: rgba(255,255,255,0.10); color: var(--ink-1); }
+.nav-link--current { background: rgba(255,255,255,0.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.20); color: var(--ink-1); }
+
+/* ---------- Rankeador ---------- */
+.rk-panel {
+  position: relative; display: flex; flex-direction: column;
+  padding: 20px 22px; background: rgba(255,255,255,0.09);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.11);
+  clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%, 0 18px);
+}
+.rk-field {
+  display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px;
+  background: rgba(255,255,255,0.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+}
+.rk-field:focus-within { box-shadow: 0 0 0 2px rgba(111,227,242,0.45); }
+.rk-field input {
+  flex-grow: 1; min-width: 0; height: 40px; border: 0; outline: none; background: transparent;
+  color: var(--ink-1); font-size: 19px; font-weight: 500;
+}
+.rk-field--iv { height: 72px; }
+.rk-field--iv input { font-family: var(--font-mono); font-size: 32px; font-weight: 600; letter-spacing: 0.04em; }
+.rk-seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: rgba(255,255,255,0.06); }
+.rk-seg button {
+  height: 30px; min-width: 34px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent;
+  color: var(--ink-3); font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  transition: background-color 100ms var(--ease), color 100ms var(--ease);
+}
+.rk-seg button:hover { color: var(--ink-1); }
+.rk-seg button[aria-pressed="true"] { background: rgba(255,255,255,0.16); color: var(--ink-1); }
+.rk-tab {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 0;
+  border-radius: 10px; background: transparent; color: var(--ink-3); font-size: 15px; font-weight: 600;
+  transition: background-color 100ms var(--ease), color 100ms var(--ease);
+}
+.rk-tab:hover { color: var(--ink-1); background: rgba(255,255,255,0.06); }
+.rk-tab[aria-selected="true"] { background: rgba(255,255,255,0.12); color: var(--ink-1); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
+.rk-count { font-family: var(--font-mono); font-size: 12px; color: var(--ink-4); }
+.rk-sprite { image-rendering: pixelated; flex-shrink: 0; }
+.rk-rank { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; color: var(--ink-2); }
+.rk-rank--good { color: var(--green); }
+.rk-rank--off { color: var(--ink-5); }
+.rk-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 0 12px;
+  border: 0; background: transparent; color: var(--ink-1); text-align: left;
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
+  transition: background-color 100ms var(--ease);
+}
+.rk-row:hover { background: rgba(255,255,255,0.06); }
+.rk-row--current { background: rgba(255,255,255,0.12); }
+.rk-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.rk-table th {
+  position: sticky; top: 0; z-index: 1; height: 38px; padding: 0 12px; background: #151920;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em;
+  color: var(--ink-4); text-align: left; white-space: nowrap;
+}
+.rk-table td { height: 58px; padding: 0 12px; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.10); white-space: nowrap; }
+.rk-table tr:hover td { background: rgba(255,255,255,0.04); }
+.rk-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.rk-cost { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.rk-cost b { color: var(--ink-1); font-weight: 600; }
+.rk-note { font-size: 13.5px; line-height: 1.5; color: var(--ink-3); }
+.rk-error { font-size: 14px; line-height: 1.5; color: var(--red-text); }
+.rk-cell {
+  display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; min-width: 0;
+  background: rgba(255,255,255,0.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+.rk-cell--good { background: rgba(82,231,157,0.08); box-shadow: inset 0 0 0 1px rgba(82,231,157,0.30); }
+.rk-list-enter { animation: fichaEntra 160ms var(--ease) both; }
+
+/* ---------- Inicio ---------- */
+.home-card {
+  position: relative; display: flex; flex-direction: column; gap: 16px;
+  width: 520px; height: 260px; padding: 30px 30px 26px;
+  background: rgba(255,255,255,0.09); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+  clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%, 0 22px);
+  color: var(--ink-1); text-decoration: none;
+  transition: background-color 100ms var(--ease), box-shadow 100ms var(--ease);
+  animation: fichaEntra 160ms var(--ease) both;
+}
+.home-card:hover { background: rgba(255,255,255,0.13); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28); }
+/* A 1440 el detalle es angosto: los costos cortan en dos líneas dentro de la celda. */
+.rk-cell .rk-cost { white-space: normal; line-height: 1.45; }
+.rk-table th, .rk-table td { padding: 0 10px; }

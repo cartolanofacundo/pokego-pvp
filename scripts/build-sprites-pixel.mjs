@@ -106,7 +106,14 @@ async function downloadTo(url, destPath) {
 async function main() {
   await mkdir(CACHE_DIR, { recursive: true });
   await mkdir(OUT_DIR, { recursive: true });
-  const pokemon = JSON.parse(await readFile(path.join(ROOT, "src", "data", "pokemon.json"), "utf-8"));
+  // Especies del combate más todas las del rankeador (sin repetir).
+  const battle = JSON.parse(await readFile(path.join(ROOT, "src", "data", "pokemon.json"), "utf-8"));
+  const ranker = JSON.parse(await readFile(path.join(ROOT, "src", "data", "ranker", "species.json"), "utf-8"));
+  const seen = new Set(battle.map((p) => p.speciesId));
+  const pokemon = [
+    ...battle,
+    ...ranker.filter((p) => !seen.has(p.id)).map((p) => ({ speciesId: p.id, dex: p.dex, shadow: p.shadow })),
+  ];
 
   const speciesCache = new Map();
   const unmatched = [];

@@ -8,6 +8,9 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const nextConfig: NextConfig = {
   output: "export",
+  // Cada sección sale como carpeta con index.html (/combate/, /rankeador/),
+  // que GitHub Pages sirve sin configuración extra.
+  trailingSlash: true,
   images: {
     unoptimized: true,
   },

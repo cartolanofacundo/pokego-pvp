@@ -1,5 +1,6 @@
 import { LEAGUES, type LeagueKey } from "@/lib/data";
 import { ChevronDownIcon, GearIcon, PlusIcon14 } from "./Icons";
+import { Brand } from "./NavLinks";
 
 export function Header({
   league,
@@ -20,12 +21,7 @@ export function Header({
         height: 60, padding: "0 48px", flexShrink: 0,
       }}
     >
-      <span style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <span className="display" style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em" }}>
-          PokéGO PVP
-        </span>
-        <span className="label label--rail" style={{ color: "#9CA6B2" }}>TIEMPO REAL</span>
-      </span>
+      <Brand current="combate" />
 
       <div style={{ display: "flex", alignItems: "center", gap: 12 }} data-coach="header-controls">
         <button type="button" className="btn btn--league" onClick={onCycleLeague} aria-label={`Liga: ${current.label}. Cambiar de liga`}>
