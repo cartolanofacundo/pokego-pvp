@@ -1,0 +1,21 @@
+# PokéGO PVP
+
+PokéGO PVP es una herramienta gratis en español para Pokémon GO: muestra las stats de combate PvP en tiempo real (multiplicadores de daño, energía y turnos hasta el ataque cargado) mientras se juega en el celular, y calcula el ranking de IV de un Pokémon por liga.
+
+## Rutas públicas
+
+- /: qué es la herramienta, cómo funciona el combate en vivo y el ranking de IV, las ligas que cubre y preguntas frecuentes.
+- /combate/: segunda pantalla para el combate PvP en vivo, con los multiplicadores de tipo, la energía y los turnos de cada ataque.
+- /rankeador/: ranking de IV por liga; para cada Pokémon cargado, el rango de IV y el puesto en PvPoke de cada evolución y Mega, y el costo para llegar.
+
+## Cómo se calcula el rango de IV
+
+Para cada una de las 4.096 combinaciones posibles de IV de ataque, defensa y PS (0 a 15 cada una), se busca el nivel más alto que no supera el tope de PC de la liga y se calcula el producto Ataque × Defensa × PS a ese nivel. Las combinaciones se ordenan de mayor a menor producto: esa posición es el rango (1 es la mejor). Dos combinaciones con el mismo producto comparten el mismo rango.
+
+## Fuentes
+
+- PvPoke (pvpoke.com): puestos por liga y movimientos.
+- PokeAPI (pokeapi.co): stats base, tipos y sprites.
+- Game Master de Pokémon GO: multiplicadores de PC por nivel y costos de subida.
+
+Los tres se actualizan cuando cambia el meta o sale un Pokémon nuevo; la fecha vigente de cada uno figura en la sección "Fuentes y actualización" de /.
