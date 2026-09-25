@@ -5,7 +5,8 @@
 // que dan exactamente ese CP en algún nivel. Una coma tipeada a mano fuerza
 // el corte ("1,13,13139" es 1/13/13 con CP 139).
 
-import { levelsForCp, type BaseStats, type Ivs } from "./cp";
+import { cpAt, levelsForCp, type Ivs } from "./cp";
+import type { Species } from "./data";
 
 /** Normaliza lo tipeado: solo dígitos y comas (cualquier separador cuenta como coma). */
 export function normalizeRaw(text: string): string {
@@ -61,7 +62,7 @@ export function formatRaw(raw: string): string {
   if (g.pending) return out + (out ? "," : "") + g.pending;
   if (g.ivs.length === 0) return "";
   if (g.ivs.length < 3) return out + ",";
-  out += "-" + g.cp;
+  out += "–" + g.cp;
   return out;
 }
 
@@ -96,25 +97,45 @@ export interface Reading extends Candidate {
 }
 
 export type ParseResult =
-  | { kind: "incomplete" }
+  | { kind: "empty" }
+  | { kind: "reading"; message: string }
   | { kind: "ok"; reading: Reading }
   | { kind: "ambiguous"; readings: Reading[] }
-  | { kind: "error"; message: string };
+  | { kind: "invalid"; message: string };
+
+export interface ParseSettings {
+  maxLevel: number;
+}
 
 /** Resuelve lo tipeado contra las estadísticas base de la especie elegida. */
-export function resolveEntry(raw: string, base: BaseStats): ParseResult {
+export function resolveEntry(raw: string, species: Species, settings: ParseSettings): ParseResult {
+  if (!raw) return { kind: "empty" };
+
   const g = greedy(raw);
-  if (g.ivs.length < 3 || g.pending || g.cp.length < 2) return { kind: "incomplete" };
+  if (g.ivs.length < 3 || g.pending || g.cp.length < 2) {
+    if (g.ivs.length < 3 || g.pending) {
+      return { kind: "reading", message: "Escribí todo junto, sin espacios: ataque, defensa, PS y después el PC. Los separadores los ponemos nosotros." };
+    }
+    const iv = { atk: Number(g.ivs[0]), def: Number(g.ivs[1]), sta: Number(g.ivs[2]) };
+    const min = cpAt(species, iv, 1);
+    const max = cpAt(species, iv, settings.maxLevel);
+    return {
+      kind: "reading",
+      message: `Faltan números del PC. Con ${iv.atk} / ${iv.def} / ${iv.sta}, ${species.name} va de ${min} a ${max} PC.`,
+    };
+  }
 
   const valid: Reading[] = [];
   for (const c of allReadings(raw)) {
-    const levels = levelsForCp(base, c, c.cp);
+    const levels = levelsForCp(species, c, c.cp).filter((l) => l <= settings.maxLevel);
     if (levels.length) valid.push({ ...c, level: levels[0] });
   }
   if (valid.length === 1) return { kind: "ok", reading: valid[0] };
   if (valid.length > 1) return { kind: "ambiguous", readings: valid };
+
+  const top = cpAt(species, { atk: 15, def: 15, sta: 15 }, settings.maxLevel);
   return {
-    kind: "error",
-    message: `Con ${g.ivs.join("/")} ningún nivel da ${g.cp} de CP. Revisá los IV, el CP o la especie.`,
+    kind: "invalid",
+    message: `Ningún ${species.name} llega a ${g.cp} PC: el tope es ${top}, en nivel ${settings.maxLevel}. ¿Se coló un número?`,
   };
 }

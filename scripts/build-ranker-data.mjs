@@ -25,7 +25,7 @@ const NIANTIC_GM = "https://raw.githubusercontent.com/PokeMiners/game_masters/ma
 // Las siete ligas del rankeador. `cap` es el tope de CP que define el rango
 // de IV; `cup` es la copa de PvPoke de donde sale el puesto de la especie.
 const LEAGUES = [
-  { key: "little", cup: "all", cp: 500 },
+  { key: "little", cup: "little", cp: 500 },
   { key: "great", cup: "all", cp: 1500 },
   { key: "ultra", cup: "all", cp: 2500 },
   { key: "master", cup: "all", cp: 10000 },
@@ -84,16 +84,54 @@ function nianticSettingsFor(pvpokeId, dex, byDex) {
   return (base ?? candidates[0]).settings;
 }
 
-/** Caramelos para evolucionar de `settings` a la especie `targetDex` (y su forma, si se puede). */
-function evolveCandy(settings, targetId, targetDex, dexOfPokemonId) {
+/** Rama de evolución de `settings` hacia la especie `targetDex` (y su forma, si se puede). */
+function evolveBranch(settings, targetId, targetDex, dexOfPokemonId) {
   const branches = (settings?.evolutionBranch ?? []).filter(
     (b) => b.evolution && dexOfPokemonId.get(b.evolution) === targetDex
   );
   if (!branches.length) return null;
   const want = normalizeForm(targetId);
   const byForm = branches.find((b) => b.form && normalizeForm(b.form) === want);
-  const b = byForm ?? branches[0];
-  return typeof b.candyCost === "number" ? b.candyCost : null;
+  return byForm ?? branches[0];
+}
+
+/** Caramelos para evolucionar de `settings` a la especie `targetDex` (y su forma, si se puede). */
+function evolveCandy(settings, targetId, targetDex, dexOfPokemonId) {
+  const b = evolveBranch(settings, targetId, targetDex, dexOfPokemonId);
+  return b && typeof b.candyCost === "number" ? b.candyCost : null;
+}
+
+/** Caramelos para evolucionar un Purificado (Niantic publica un costo propio, más bajo). */
+function evolveCandyPurified(settings, targetId, targetDex, dexOfPokemonId) {
+  const b = evolveBranch(settings, targetId, targetDex, dexOfPokemonId);
+  return b && typeof b.candyCostPurified === "number" ? b.candyCostPurified : null;
+}
+
+// Sufijo del id de especie Mega según el nombre de rama de Niantic. Charizard,
+// Mewtwo y Raichu tienen X e Y con costos de energía distintos; Kyogre y
+// Groudon son Primal; el resto es una sola Mega.
+const TEMP_EVO_SUFFIX = {
+  TEMP_EVOLUTION_MEGA: "_mega",
+  TEMP_EVOLUTION_MEGA_X: "_mega_x",
+  TEMP_EVOLUTION_MEGA_Y: "_mega_y",
+  TEMP_EVOLUTION_PRIMAL: "_primal",
+};
+
+/**
+ * Costo de energía de la primera Megaevolución hacia cada forma Mega de una
+ * especie (el costo baja en las siguientes del mismo día, pero esa parte no
+ * la modelamos). Niantic lo publica como una rama más de `evolutionBranch`,
+ * con `temporaryEvolution` en vez de `evolution`.
+ */
+function megaEnergyCosts(settings, baseId) {
+  const out = {};
+  for (const b of settings?.evolutionBranch ?? []) {
+    const suffix = TEMP_EVO_SUFFIX[b.temporaryEvolution];
+    if (suffix && typeof b.temporaryEvolutionEnergyCost === "number") {
+      out[baseId + suffix] = b.temporaryEvolutionEnergyCost;
+    }
+  }
+  return out;
 }
 
 /** Trunca un número entre 0 y 1 a 15 cifras significativas. */
@@ -147,18 +185,29 @@ async function main() {
   }
 
   const byId = new Map(released.map((p) => [p.speciesId, p]));
+  // Little Cup, regla real del juego: solo especies sin evolucionar (sin
+  // "parent" en su familia) que todavía pueden evolucionar, salvo las que
+  // Niantic excluyó a mano. Es independiente de si PvPoke llegó a rankearla:
+  // eso se resuelve aparte, como puesto ausente ("sin puesto"), no como
+  // forma no legal.
+  const LITTLE_EXCLUDED = new Set(["shuckle", "smeargle"]);
   const missingCosts = [];
   const species = released.map((p) => {
     const settings = nianticSettingsFor(p.speciesId, p.dex, byDex);
     const evolutions = (p.family?.evolutions ?? []).filter((id) => ids.has(id));
     const candy = {};
+    const candyPurified = {};
     for (const t of evolutions) {
       const c = evolveCandy(settings, t, byId.get(t).dex, dexOfPokemonId);
       if (c !== null) candy[t] = c;
       else missingCosts.push(`${p.speciesId} -> ${t}`);
+      const cp = evolveCandyPurified(settings, t, byId.get(t).dex, dexOfPokemonId);
+      if (cp !== null) candyPurified[t] = cp;
     }
     const third = settings?.thirdMove;
     const shadow = p.speciesId.endsWith("_shadow");
+    const baseId = p.speciesId.replace(/_shadow$/, "");
+    const mega = isMegaTag(p);
     return {
       id: p.speciesId,
       name: p.speciesName,
@@ -168,11 +217,16 @@ async function main() {
       sta: p.baseStats.hp,
       types: [p.types?.[0] ?? "none", p.types?.[1] ?? "none"],
       shadow,
-      mega: isMegaTag(p),
+      mega,
+      parent: p.family?.parent && ids.has(p.family.parent) ? p.family.parent : null,
       evolutions,
       evolveCandy: candy,
+      evolveCandyPurified: candyPurified,
       // Las Shadow no pueden megaevolucionar.
       megas: shadow ? [] : (megasOf.get(p.speciesId) ?? []),
+      megaEnergy: mega ? {} : megaEnergyCosts(settings, p.speciesId),
+      littleEligible:
+        !mega && !p.family?.parent && evolutions.length > 0 && !LITTLE_EXCLUDED.has(baseId),
       third: third ? { candy: third.candyToUnlock ?? null, dust: third.stardustToUnlock ?? null } : null,
     };
   });
@@ -200,6 +254,12 @@ async function main() {
     maxPowerUpLevel: up.maxNormalUpgradeLevel,
     shadowCandy: up.shadowCandyMultiplier,
     shadowDust: up.shadowStardustMultiplier,
+    purifiedCandy: up.purifiedCandyMultiplier,
+    purifiedDust: up.purifiedStardustMultiplier,
+    // Un Afortunado paga la mitad de polvo al subir de nivel; los caramelos no
+    // cambian. Es una regla fija del juego, Niantic no la publica en el game
+    // master como un campo aparte.
+    luckyDust: 0.5,
   };
 
   const meta = {

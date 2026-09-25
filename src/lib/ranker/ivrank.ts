@@ -1,8 +1,9 @@
-// Rango de IV para PvP, con el mismo criterio que el Rank Checker de Stadium
-// Gaming (leído de su código y verificado contra sus números): para cada una
-// de las 4096 combinaciones se busca el nivel más alto que no pasa el tope de
-// CP de la liga, se calcula el producto de estadísticas a ese nivel y se
-// ordena de mayor a menor; en empate va primero la de más suma de IV.
+// Rango de IV para PvP: para cada una de las 4096 combinaciones se busca el
+// nivel más alto que no pasa el tope de CP de la liga, se calcula el
+// producto de estadísticas a ese nivel y se ordena de mayor a menor. Dos
+// combinaciones con el mismo producto comparten el mismo puesto (así lo pide
+// el diseño); el siguiente puesto salta la cantidad de empatadas, así el
+// último rango sigue siendo 4096 como mucho.
 
 import { COSTS } from "./data";
 import type { BaseStats, Ivs } from "./cp";
@@ -85,16 +86,13 @@ export function rankTable(base: BaseStats, cap: number, settings: RankSettings):
     return null;
   }
 
-  // Comparador de Stadium tal cual: producto de mayor a menor y, si es
-  // idéntico, primero la de más suma de IV. Con la misma suma devuelve -1
-  // igual que el suyo, así el desempate final lo decide el mismo algoritmo
-  // de ordenamiento del navegador sobre el mismo orden de entrada.
-  const ivSum = (r: { atk: number; def: number; sta: number }) => r.atk + r.def + r.sta;
-  rows.sort((x, y) =>
-    x.product === y.product ? (ivSum(x) < ivSum(y) ? 1 : -1) : x.product < y.product ? 1 : -1
-  );
+  rows.sort((x, y) => (x.product === y.product ? 0 : x.product < y.product ? 1 : -1));
   const top = rows[0].product;
-  const ranked: RankRow[] = rows.map((r, i) => ({ ...r, rank: i + 1, pct: (r.product / top) * 100 }));
+  let rank = 1;
+  const ranked: RankRow[] = rows.map((r, i) => {
+    if (i > 0 && r.product !== rows[i - 1].product) rank = i + 1;
+    return { ...r, rank, pct: (r.product / top) * 100 };
+  });
   const table: RankTable = {
     rows: ranked,
     byIv: new Map(ranked.map((r) => [ivKey(r.atk, r.def, r.sta), r])),

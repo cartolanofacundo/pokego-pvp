@@ -3,12 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Viewport } from "@/components/Viewport";
 import { Brand } from "@/components/NavLinks";
-import { TypeChips } from "@/components/TypeChip";
-import { SPECIES, getSpecies, type RankerLeagueKey, type Species } from "@/lib/ranker/data";
-import { analyzeEntry, DEX_MAX_RANK, type BoxEntry } from "@/lib/ranker/analysis";
-import { formatLevel } from "@/lib/ranker/cp";
+import { bestRankOf, type BoxEntry } from "@/lib/ranker/analysis";
+import { SPECIES, familyRootOf, getSpecies, type RankerLeagueKey, type Species } from "@/lib/ranker/data";
 import { fmt } from "@/lib/ranker/format";
-import type { Reading } from "@/lib/ranker/parse";
+import type { IvSubmit } from "./IvInput";
 import { loadJSON, saveJSON } from "@/lib/storage";
 import {
   DEFAULT_RANKER_SETTINGS,
@@ -24,12 +22,13 @@ import {
   type RankerSettings,
 } from "@/lib/ranker/box";
 import { withBasePath } from "@/lib/basePath";
-import { SpeciesPicker, type SpeciesPickerHandle } from "./SpeciesPicker";
+import { SpeciesPicker, SpeciesCard, type SpeciesPickerHandle } from "./SpeciesPicker";
 import { IvInput, type IvInputHandle } from "./IvInput";
 import { EntryDetail } from "./EntryDetail";
 import { DexView, type DexMode } from "./DexView";
 
 const LAST_SPECIES_KEY = "pokego-pvp:ranker:last-species";
+const VARIANT_LABEL: Record<string, string> = { normal: "", shadow: "oscuro", purified: "purificado" };
 
 type View = "cargar" | "pokedex";
 
@@ -40,10 +39,12 @@ export function RankerApp() {
   const [view, setView] = useState<View>("cargar");
   const [speciesId, setSpeciesId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [dexLeague, setDexLeague] = useState<RankerLeagueKey>("great");
   const [dexMode, setDexMode] = useState<DexMode>("utiles");
   const [pendingImport, setPendingImport] = useState<{ entries: BoxEntry[]; skipped: number; name: string } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [importedOk, setImportedOk] = useState<number | null>(null);
 
   const pickerRef = useRef<SpeciesPickerHandle>(null);
   const ivRef = useRef<IvInputHandle>(null);
@@ -71,16 +72,28 @@ export function RankerApp() {
     if (ready) saveJSON(LAST_SPECIES_KEY, speciesId);
   }, [speciesId, ready]);
 
+  useEffect(() => {
+    if (importedOk === null) return;
+    const t = setTimeout(() => setImportedOk(null), 6000);
+    return () => clearTimeout(t);
+  }, [importedOk]);
+
   const species = speciesId ? getSpecies(speciesId) ?? null : null;
-  const speciesEntries = useMemo(
-    () => entries.filter((e) => e.speciesId === speciesId).sort((a, b) => b.addedAt - a.addedAt),
-    [entries, speciesId]
+  // "Cargados de esta línea" agrupa toda la familia (Mudkip, Marshtomp,
+  // Swampert…), no solo la especie exacta elegida: un Marshtomp cargado
+  // aparte sigue siendo la misma línea.
+  const familyRoot = species ? familyRootOf(species.id) : null;
+  const familyEntries = useMemo(
+    () => (familyRoot ? entries.filter((e) => familyRootOf(e.speciesId) === familyRoot).sort((a, b) => b.addedAt - a.addedAt) : []),
+    [entries, familyRoot]
   );
-  const selected = entries.find((e) => e.id === selectedId) ?? speciesEntries[0] ?? null;
+  const editingEntry = editingId ? entries.find((e) => e.id === editingId) ?? null : null;
+  const selected = entries.find((e) => e.id === selectedId) ?? familyEntries[0] ?? null;
 
   const chooseSpecies = useCallback((s: Species) => {
     setSpeciesId(s.id);
     setSelectedId(null);
+    setEditingId(null);
     setTimeout(() => ivRef.current?.focus(), 0);
   }, []);
 
@@ -88,29 +101,46 @@ export function RankerApp() {
     (dir: 1 | -1) => {
       const idx = SPECIES.findIndex((s) => s.id === speciesId);
       const next = SPECIES[Math.min(SPECIES.length - 1, Math.max(0, idx + dir))];
-      if (next) {
+      if (next && !next.shadow && !next.mega) {
         setSpeciesId(next.id);
         setSelectedId(null);
+        setEditingId(null);
       }
     },
     [speciesId]
   );
 
-  const addEntry = (r: Reading) => {
+  const addEntry = (s: IvSubmit) => {
     if (!species) return;
-    const e: BoxEntry = { id: newId(), speciesId: species.id, atk: r.atk, def: r.def, sta: r.sta, cp: r.cp, level: r.level, addedAt: Date.now() };
+    const { reading: r, variant, lucky } = s;
+    const e: BoxEntry = { id: newId(), speciesId: species.id, atk: r.atk, def: r.def, sta: r.sta, cp: r.cp, level: r.level, variant, lucky, addedAt: Date.now() };
     setEntries((xs) => [...xs, e]);
     setSelectedId(e.id);
+  };
+
+  const saveEdit = (s: IvSubmit) => {
+    if (!editingId) return;
+    const { reading: r, variant, lucky } = s;
+    setEntries((xs) => xs.map((e) => (e.id === editingId ? { ...e, atk: r.atk, def: r.def, sta: r.sta, cp: r.cp, level: r.level, variant, lucky } : e)));
+    setEditingId(null);
+    setSelectedId(editingId);
   };
 
   const deleteEntry = (id: string) => {
     setEntries((xs) => xs.filter((e) => e.id !== id));
     if (selectedId === id) setSelectedId(null);
+    if (editingId === id) setEditingId(null);
+  };
+
+  const deleteMany = (ids: string[]) => {
+    const set = new Set(ids);
+    setEntries((xs) => xs.filter((e) => !set.has(e.id)));
   };
 
   const openEntry = (e: BoxEntry) => {
     setSpeciesId(e.speciesId);
     setSelectedId(e.id);
+    setEditingId(null);
     setView("cargar");
   };
 
@@ -148,23 +178,29 @@ export function RankerApp() {
         e.preventDefault();
         setView(e.key === "1" ? "cargar" : "pokedex");
       }
+      if (e.key.toLowerCase() === "e" && !typing && selected && !editingId && view === "cargar") {
+        e.preventDefault();
+        setEditingId(selected.id);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [selected, editingId, view]);
 
   const set = (patch: Partial<RankerSettings>) => setSettings((s) => ({ ...s, ...patch }));
 
   return (
     <Viewport>
       <main style={{ position: "relative", width: "100%", height: "var(--h)", display: "flex", flexDirection: "column", overflow: "hidden", background: "radial-gradient(1000px 600px at 20% 0%, rgba(92,152,236,0.10), rgba(92,152,236,0) 70%), #080A0D" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, padding: "0 48px", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, padding: "0 48px", flexShrink: 0, boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.08)" }}>
           <Brand current="rankeador" />
-          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button type="button" className="btn" style={{ height: 38, fontSize: 13.5 }} onClick={doExport} disabled={!entries.length}>
-              Exportar caja
+          <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button type="button" className="btn" style={{ height: 44 }} onClick={doExport} disabled={!entries.length}>
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 9.5V1.8M4.4 4.6l3.1-3 3.1 3M2 9.5v3.2h11V9.5" stroke="#F2F3F5" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>
+              Exportar
             </button>
-            <button type="button" className="btn" style={{ height: 38, fontSize: 13.5 }} onClick={() => fileRef.current?.click()}>
+            <button type="button" className="btn" style={{ height: 44 }} onClick={() => fileRef.current?.click()}>
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8v7.7M4.4 6.6l3.1 3 3.1-3M2 9.5v3.2h11V9.5" stroke="#F2F3F5" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>
               Importar
             </button>
             <input
@@ -184,10 +220,10 @@ export function RankerApp() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "4px 48px 16px", flexShrink: 0 }}>
           <span role="tablist" style={{ display: "flex", gap: 6 }}>
             <button type="button" role="tab" className="rk-tab" aria-selected={view === "cargar"} onClick={() => setView("cargar")}>
-              Cargar <span className="kbd kbd--sm">Alt 1</span>
+              Cargar
             </button>
             <button type="button" role="tab" className="rk-tab" aria-selected={view === "pokedex"} onClick={() => setView("pokedex")}>
-              Mi pokédex <span className="rk-count">{entries.length}</span> <span className="kbd kbd--sm">Alt 2</span>
+              Mi pokédex <span className="rk-count">{entries.length}</span>
             </button>
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 18 }}>
@@ -205,9 +241,9 @@ export function RankerApp() {
                 </button>
               ))}
             </Setting>
-            <Setting label="3.ER ATAQUE">
+            <Setting label="3ER ATAQUE">
               <button type="button" aria-pressed={settings.showThirdMove} onClick={() => set({ showThirdMove: true })}>
-                Ver
+                Mostrar
               </button>
               <button type="button" aria-pressed={!settings.showThirdMove} onClick={() => set({ showThirdMove: false })}>
                 Ocultar
@@ -216,67 +252,111 @@ export function RankerApp() {
           </span>
         </div>
 
-        {(pendingImport || importError) && (
-          <div style={{ margin: "0 48px 16px", display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: importError ? "rgba(255,107,107,0.16)" : "rgba(242,177,76,0.14)" }}>
+        {(pendingImport || importError || importedOk !== null) && (
+          <div className={`rk-band ${importError ? "rk-band--red" : importedOk !== null ? "rk-band--green" : "rk-band--amber"}`} style={{ margin: "0 48px 16px", flexShrink: 0 }}>
+            <span className="rk-band__dot" style={{ background: importError ? "#FF7E7E" : importedOk !== null ? "#52E79D" : "#F8C066" }} />
             {importError ? (
-              <span className="rk-error" style={{ flexGrow: 1 }}>{importError}</span>
+              <span style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Ese archivo no es una caja de PokéGO PVP</span>
+                <span style={{ fontSize: 14, color: "#DCE1E7" }}>No tocamos nada: tu caja sigue igual. Tiene que ser el .json que baja el botón Exportar.</span>
+              </span>
+            ) : importedOk !== null ? (
+              <span style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Caja importada: {fmt(importedOk)} Pokémon</span>
+              </span>
             ) : (
-              <span className="rk-note" style={{ flexGrow: 1, color: "#FAD190" }}>
-                {pendingImport!.name} trae {fmt(pendingImport!.entries.length)} Pokémon
-                {pendingImport!.skipped === 1 ? " (1 ilegible se descarta)" : pendingImport!.skipped ? ` (${pendingImport!.skipped} ilegibles se descartan)` : ""}. Importar reemplaza tu caja actual de {fmt(entries.length)}.
+              <span style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Vas a reemplazar tu caja</span>
+                <span style={{ fontSize: 14, color: "#DCE1E7" }}>
+                  Tenés {fmt(entries.length)} Pokémon cargados y {pendingImport!.name} trae {fmt(pendingImport!.entries.length)}
+                  {pendingImport!.skipped === 1 ? " (1 ilegible se descarta)" : pendingImport!.skipped ? ` (${pendingImport!.skipped} ilegibles se descartan)` : ""}.
+                  Los de ahora se borran: si los querés guardar, exportá primero.
+                </span>
               </span>
             )}
-            {pendingImport && (
-              <button
-                type="button"
-                className="btn btn--primary"
-                style={{ height: 36, fontSize: 13.5 }}
-                onClick={() => {
-                  setEntries(pendingImport.entries);
-                  setSelectedId(null);
-                  setPendingImport(null);
-                }}
-              >
-                Reemplazar mi caja
+            <span style={{ display: "flex", gap: 10 }}>
+              {pendingImport && !importError && importedOk === null && (
+                <>
+                  <button type="button" className="btn" style={{ height: 40 }} onClick={doExport} disabled={!entries.length}>
+                    Exportar la actual
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    style={{ height: 40 }}
+                    onClick={() => {
+                      setEntries(pendingImport.entries);
+                      setImportedOk(pendingImport.entries.length);
+                      setSelectedId(null);
+                      setEditingId(null);
+                      setPendingImport(null);
+                    }}
+                  >
+                    Reemplazar
+                  </button>
+                </>
+              )}
+              <button type="button" className="btn btn--ghost" style={{ height: 40 }} onClick={() => { setPendingImport(null); setImportError(null); setImportedOk(null); }}>
+                {importError ? "Cerrar" : importedOk !== null ? "Cerrar" : "Cancelar"}
               </button>
-            )}
-            <button type="button" className="btn btn--ghost" style={{ height: 36, fontSize: 13.5 }} onClick={() => { setPendingImport(null); setImportError(null); }}>
-              {importError ? "Cerrar" : "Cancelar"}
-            </button>
+            </span>
           </div>
         )}
 
         <div style={{ display: "flex", gap: 28, padding: "0 48px 24px", flexGrow: 1, minHeight: 0 }}>
           {view === "cargar" ? (
             <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "clamp(420px, 27vw, 500px)", flexShrink: 0, minHeight: 0 }}>
-                <div className="rk-panel" style={{ gap: 16, overflow: "visible", clipPath: "none" }}>
-                  <span className="label" style={{ fontSize: 10.5 }}>ESPECIE</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "clamp(420px, 27vw, 500px)", flexShrink: 0, minHeight: 0 }}>
+                <div className="rk-panel" style={{ gap: 14, overflow: "visible", clipPath: "none" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span className="label" style={{ fontSize: 11 }}>Especie</span>
+                    <span className="rk-cost" style={{ fontSize: 11 }}>PASO 1</span>
+                  </div>
                   <SpeciesPicker ref={pickerRef} onPick={chooseSpecies} />
-                  {species && <SpeciesCard species={species} onStep={stepSpecies} />}
+                  {species && <SpeciesCard species={species} onPick={chooseSpecies} />}
                 </div>
 
-                {species && (
+                {species && !editingEntry && (
                   <div className="rk-panel" style={{ gap: 12 }}>
-                    <span className="label" style={{ fontSize: 10.5 }}>IV Y CP</span>
-                    <IvInput ref={ivRef} species={species} onAdd={addEntry} onNextSpecies={stepSpecies} />
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span className="label" style={{ fontSize: 11 }}>IV y PC</span>
+                      <span className="rk-cost" style={{ fontSize: 11 }}>ATQ · DEF · PS — PC</span>
+                    </div>
+                    <IvInput ref={ivRef} species={species} settings={settings} onSubmit={addEntry} onNextSpecies={stepSpecies} />
+                  </div>
+                )}
+
+                {editingEntry && (
+                  <div className="rk-panel" style={{ gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span className="label" style={{ fontSize: 11 }}>Editar un cargado</span>
+                      <span className="rk-cost" style={{ fontSize: 11 }}>E EN LA FILA · ESC CANCELA</span>
+                    </div>
+                    <IvInput
+                      species={getSpecies(editingEntry.speciesId)!}
+                      settings={settings}
+                      initial={editingEntry}
+                      onSubmit={saveEdit}
+                      onCancel={() => setEditingId(null)}
+                    />
                   </div>
                 )}
 
                 {species && (
                   <div className="rk-panel" style={{ gap: 10, flexGrow: 1, minHeight: 0 }}>
-                    <span className="label" style={{ fontSize: 10.5 }}>
-                      CARGADOS DE {species.name.toUpperCase()} · {speciesEntries.length}
+                    <span className="label" style={{ fontSize: 11 }}>
+                      CARGADOS DE ESTA LÍNEA · {familyEntries.length}
                     </span>
                     <div className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 2, minHeight: 0 }}>
-                      {speciesEntries.length === 0 && <span className="rk-note">Todavía ninguno. Tipeá los IV y el CP y apretá Enter.</span>}
-                      {speciesEntries.map((e) => (
+                      {familyEntries.length === 0 && <span className="rk-note">Todavía ninguno. Tipeá los IV y el CP y apretá Enter.</span>}
+                      {familyEntries.map((e) => (
                         <EntryRow
                           key={e.id}
                           entry={e}
                           settings={settings}
                           current={selected?.id === e.id}
-                          onSelect={() => setSelectedId(e.id)}
+                          onSelect={() => { setSelectedId(e.id); setEditingId(null); }}
+                          onEdit={() => setEditingId(e.id)}
                           onDelete={() => deleteEntry(e.id)}
                         />
                       ))}
@@ -287,7 +367,7 @@ export function RankerApp() {
 
               <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0, minHeight: 0 }}>
                 {selected ? (
-                  <EntryDetail entry={selected} settings={settings} onDelete={() => deleteEntry(selected.id)} />
+                  <EntryDetail entry={selected} settings={settings} onEdit={() => setEditingId(selected.id)} onDelete={() => deleteEntry(selected.id)} />
                 ) : (
                   <div className="rk-panel" style={{ flexGrow: 1, justifyContent: "center", alignItems: "center", gap: 12 }}>
                     <span className="display" style={{ fontSize: 26, fontWeight: 800 }}>
@@ -312,6 +392,8 @@ export function RankerApp() {
               onMode={setDexMode}
               onOpen={openEntry}
               onDelete={deleteEntry}
+              onDeleteMany={deleteMany}
+              onRestore={setEntries}
             />
           )}
         </div>
@@ -331,78 +413,57 @@ function Setting({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function SpeciesCard({ species, onStep }: { species: Species; onStep: (d: 1 | -1) => void }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="rk-sprite" src={withBasePath(`/sprites/pixel/${species.id}.png`)} alt="" width={72} height={72} />
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, flexGrow: 1, minWidth: 0 }}>
-        <span style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <span className="display" style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>{species.name}</span>
-          <span className="rk-num" style={{ color: "#9CA6B2" }}>#{species.dex}</span>
-        </span>
-        <TypeChips types={species.types} variant="row" />
-        <span className="rk-cost">
-          ATQ <b>{species.atk}</b> · DEF <b>{species.def}</b> · PS <b>{species.sta}</b>
-        </span>
-      </div>
-      <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <button type="button" className="btn btn--icon" style={{ width: 34, height: 30 }} aria-label="Especie anterior (Ctrl ↑)" onClick={() => onStep(-1)}>
-          ↑
-        </button>
-        <button type="button" className="btn btn--icon" style={{ width: 34, height: 30 }} aria-label="Especie siguiente (Ctrl ↓)" onClick={() => onStep(1)}>
-          ↓
-        </button>
-      </span>
-    </div>
-  );
-}
-
 function EntryRow({
   entry,
   settings,
   current,
   onSelect,
+  onEdit,
   onDelete,
 }: {
   entry: BoxEntry;
   settings: RankerSettings;
   current: boolean;
   onSelect: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
-  const best = useMemo(() => {
-    let b: { rank: number; league: string; form: string } | null = null;
-    for (const r of analyzeEntry(entry, settings)) {
-      if (r.target.isMega) continue;
-      for (const c of r.cells) {
-        if (c.row && !c.overLevel && (!b || c.row.rank < b.rank)) b = { rank: c.row.rank, league: c.league.short, form: r.target.species.name };
-      }
-    }
-    return b;
-  }, [entry, settings]);
+  const species = getSpecies(entry.speciesId)!;
+  const best = useMemo(() => bestRankOf(entry, settings), [entry, settings]);
 
   return (
-    <div className={`rk-row rk-list-enter ${current ? "rk-row--current" : ""}`} style={{ paddingRight: 6 }}>
-      <button type="button" onClick={onSelect} style={{ display: "flex", alignItems: "center", gap: 12, flexGrow: 1, minWidth: 0, height: 48, border: 0, background: "transparent", color: "inherit", textAlign: "left", padding: 0 }}>
-        <span className="rk-num" style={{ width: 84, fontSize: 15.5, fontWeight: 600 }}>
-          {entry.atk}/{entry.def}/{entry.sta}
-        </span>
-        <span className="rk-cost" style={{ width: 118 }}>
-          CP {fmt(entry.cp)} · nv {formatLevel(entry.level)}
+    <div className={`rk-row rk-list-enter ${current ? "rk-row--current" : ""}`} style={{ paddingRight: 6, height: 62 }}>
+      <button type="button" onClick={onSelect} style={{ display: "flex", alignItems: "center", gap: 8, flexGrow: 1, minWidth: 0, height: 62, border: 0, background: "transparent", color: "inherit", textAlign: "left", padding: 0 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="rk-sprite" src={withBasePath(`/sprites/pixel/${species.id}.png`)} alt="" style={{ width: 72, height: 72, margin: "-10px -6px -10px -8px" }} />
+        <span style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0, flexShrink: 0, width: 108 }}>
+          <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {species.name}
+            {entry.variant !== "normal" && <span className="rk-cost" style={{ fontSize: 10.5 }}> {VARIANT_LABEL[entry.variant]}</span>}
+          </span>
+          <span className="rk-num" style={{ fontSize: 13, fontWeight: 600, color: "#DCE1E7", whiteSpace: "nowrap" }}>{entry.atk} / {entry.def} / {entry.sta}</span>
         </span>
         {best && (
-          <span style={{ display: "flex", alignItems: "baseline", gap: 6, minWidth: 0 }}>
-            <span className={`rk-rank ${best.rank <= DEX_MAX_RANK ? "rk-rank--good" : ""}`} style={{ fontSize: 18 }}>#{fmt(best.rank)}</span>
-            <span className="rk-cost" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-              {best.league} · {best.form}
-            </span>
+          <span className={`rk-chip ${best.rank <= 100 ? "rk-chip--good" : ""}`}>
+            <span className="rk-rank" style={{ fontSize: 17, color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>#{fmt(best.rank)}</span>
+            <span className="rk-cost" style={{ fontSize: 10.5, textTransform: "uppercase", color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>{best.league.short}</span>
+          </span>
+        )}
+        {best?.pvpoke && (
+          <span className="rk-chip">
+            <span className="rk-cost" style={{ fontSize: 9.5 }}>PVP</span>
+            <span className="rk-rank" style={{ fontSize: 17 }}>#{fmt(best.pvpoke)}</span>
           </span>
         )}
       </button>
-      <button type="button" className="btn btn--icon" style={{ width: 30, height: 30, background: "transparent", color: "#9CA6B2" }} aria-label="Quitar de la caja" onClick={onDelete}>
-        ×
-      </button>
+      <span style={{ display: "flex", gap: 4 }}>
+        <button type="button" className="btn btn--icon" style={{ width: 30, height: 30, background: "rgba(255,255,255,0.07)" }} aria-label="Editar" onClick={onEdit}>
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 12h2.6L11.8 4.8 9.2 2.2 2 9.4V12z" stroke="#A8B0BB" strokeWidth={1.4} strokeLinejoin="round" /></svg>
+        </button>
+        <button type="button" className="btn btn--icon" style={{ width: 30, height: 30, background: "rgba(255,255,255,0.07)", color: "#9CA6B2" }} aria-label="Quitar de la caja" onClick={onDelete}>
+          ×
+        </button>
+      </span>
     </div>
   );
 }
