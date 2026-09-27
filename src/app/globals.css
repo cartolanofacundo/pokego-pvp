@@ -247,7 +247,10 @@ button:focus:not(:focus-visible) { outline: none; }
    60u hasta 44u en vez de que la caja pise el VS. */
 .court__row--rival .stats { margin-block: calc(12 * var(--u)) calc(30 * var(--u)); max-height: calc(100% - calc(42 * var(--u))); }
 .stats .move-row { height: auto; flex: 0 1 calc(60 * var(--u)); min-height: calc(44 * var(--u)); }
-.stage { position: relative; flex: 0 1 auto; height: 100%; }
+/* El escenario es decorativo (halo, anillos, sombra, sprite) y se mete sobre
+   el riel contrario y el header: no tiene que capturar clics, así los
+   botones que quedan debajo (fichas, liga, Nuevo combate) siguen andando. */
+.stage { position: relative; flex: 0 1 auto; height: 100%; pointer-events: none; }
 /* El sprite propio se mete sobre el riel rival y viceversa: el escenario
    tiene un margen negativo fijo (en `u`) que lo empuja fuera de la cancha,
    hacia el hueco del riel contrario. Sin mínimo propio: al escalar todo por
