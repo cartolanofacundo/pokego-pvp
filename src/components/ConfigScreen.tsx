@@ -1,6 +1,7 @@
 import { ACTIONS, type ActionId, type Combo } from "@/lib/shortcuts";
 import { Kbd } from "./Kbd";
 import { BackIcon, PencilIcon, ResetIcon } from "./Icons";
+import { u } from "@/lib/scale";
 
 /**
  * Configuración de atajos (Config.dc.html traducida a 1920, esquinas
@@ -51,8 +52,8 @@ export function ConfigScreen({
         color: "#F2F3F5", overflow: "hidden",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 68, padding: "0 48px", flexShrink: 0 }}>
-        <button type="button" className="btn" style={{ padding: "0 16px 0 12px", gap: 10, fontSize: 15, background: "rgba(255,255,255,0.10)" }} onClick={onBack}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: u(68), padding: `0 ${u(48)}`, flexShrink: 0 }}>
+        <button type="button" className="btn" style={{ background: "rgba(255,255,255,0.10)" }} onClick={onBack}>
           <BackIcon />
           <span>Combate</span>
         </button>
@@ -62,13 +63,13 @@ export function ConfigScreen({
         </button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 48px 40px", flexGrow: 1, minHeight: 0 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, width: 1120 }}>
-          <span className="display" style={{ fontSize: 44, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05 }}>Configuración</span>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: `${u(8)} ${u(48)} ${u(40)}`, flexGrow: 1, minHeight: 0, overflowY: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, width: u(1120) }}>
+          <span className="display" style={{ fontSize: "max(26px, calc(44 * var(--u)))", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05 }}>Configuración</span>
           <span className="label" style={{ fontSize: 11, color: "#A8B0BB" }}>ATAJOS DE TECLADO</span>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 48, width: 1120, marginTop: 36 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: u(48), width: u(1120), marginTop: u(36) }}>
           <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
             <span className="label label--rail" style={{ color: "#9CA6B2", marginBottom: 12 }}>{groups[0].title}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{groups[0].ids.map(row)}</div>

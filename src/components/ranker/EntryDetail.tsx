@@ -33,16 +33,20 @@ export function EntryDetail({
   const species = getSpecies(entry.speciesId)!;
   const results = useMemo(() => analyzeEntry(entry, settings), [entry, settings]);
 
+  // Costos (PC y nivel donde rinde, polvo, caramelos, energía Mega, tercer
+  // ataque) en `.rk-costs--*`: el ajuste Costos los muestra, los oculta o
+  // ("auto") los oculta solo cuando las celdas quedan angostas (container
+  // queries en globals.css).
   return (
-    <div className="rk-panel" style={{ flexGrow: 1, minWidth: 0, minHeight: 0, gap: 14 }}>
+    <div className={`rk-panel rk-detail rk-detail--costs-${settings.costs}`} style={{ flexGrow: 1, minWidth: 0, minHeight: 0, gap: 14 }}>
       <span className="panel__edge" style={{ left: 18 }} />
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexShrink: 0 }}>
         <span style={{ display: "flex", alignItems: "baseline", gap: 18, minWidth: 0 }}>
-          <span className="display" style={{ fontSize: 34, fontWeight: 800, letterSpacing: "-0.03em" }}>{species.name}</span>
-          <span className="rk-num" style={{ fontSize: 24, fontWeight: 600 }}>
+          <span className="display" style={{ fontSize: 34, fontWeight: 800, letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>{species.name}</span>
+          <span className="rk-num" style={{ fontSize: 24, fontWeight: 600, whiteSpace: "nowrap" }}>
             {entry.atk} / {entry.def} / {entry.sta}
           </span>
-          <span className="rk-cost" style={{ fontSize: 14, color: "#B4BCC6" }}>
+          <span className="rk-cost" style={{ fontSize: 14, color: "#B4BCC6", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
             {fmt(entry.cp)} PC · nivel {formatLevel(entry.level)} · {VARIANT_LABEL[entry.variant]}
             {entry.lucky ? " · suertudo" : ""}
           </span>
@@ -81,9 +85,11 @@ export function EntryDetail({
                 </span>
               </span>
               <TypeChips types={r.target.species.types} variant="row" />
-              <EvolveCostLine candy={r.evolveCandy} evolved={r.target.path.length > 1} />
-              {r.target.isMega && <MegaEnergyLine energy={r.megaEnergy} />}
-              {settings.showThirdMove && <ThirdMoveLine cost={r.third} />}
+              <span className="rk-costs--detail" style={{ flexDirection: "column", gap: 5 }}>
+                <EvolveCostLine candy={r.evolveCandy} evolved={r.target.path.length > 1} />
+                {r.target.isMega && <MegaEnergyLine energy={r.megaEnergy} />}
+                {settings.showThirdMove && <ThirdMoveLine cost={r.third} />}
+              </span>
             </div>
 
             {r.cells.map((c) => {
@@ -99,25 +105,27 @@ export function EntryDetail({
               }
               const good = c.row.rank <= 100;
               return (
-                <div key={c.league.key} className={`rk-cell ${good ? "rk-cell--good" : ""}`} style={{ position: "relative" }}>
+                <div key={c.league.key} className={`rk-cell ${good ? "rk-cell--good" : ""} ${c.best ? "rk-cell--best" : ""}`} style={{ position: "relative" }}>
                   {c.best && <span className="rk-tag rk-tag--mejor">MEJOR</span>}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 5, paddingRight: 10 }}>
+                  <div className="rk-cell__nums">
+                    <div className="rk-cell__num">
                       <span className="label" style={{ fontSize: 9.5, color: good ? "#86EFBC" : "#9CA6B2" }}>Rango IV</span>
-                      <span className={`rk-rank ${good ? "rk-rank--good" : ""}`} style={{ fontSize: 30 }}>#{c.row.rank}</span>
+                      <span className={`rk-rank rk-cell__num-value ${good ? "rk-rank--good" : ""}`}>#{c.row.rank}</span>
                       <span className="rk-cost" style={{ fontSize: 12 }}>{c.row.pct.toFixed(1).replace(".", ",")} %</span>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 5, paddingLeft: 12, boxShadow: "inset 1px 0 0 rgba(255,255,255,0.14)" }}>
+                    <div className="rk-cell__num rk-cell__num--pv">
                       <span className="label" style={{ fontSize: 9.5 }}>PvPoke</span>
-                      <span className="rk-rank" style={{ fontSize: 30, color: "#F2F3F5" }}>{c.pvpoke ? `#${fmt(c.pvpoke)}` : "—"}</span>
+                      <span className="rk-rank rk-cell__num-value" style={{ color: "#F2F3F5" }}>{c.pvpoke ? `#${fmt(c.pvpoke)}` : "—"}</span>
                       <span className="rk-cost" style={{ fontSize: 10.5, letterSpacing: "0.1em" }}>{c.pvpoke ? "EN LA LIGA" : "SIN PUESTO"}</span>
                     </div>
                   </div>
-                  <span style={{ height: 1, background: "rgba(255,255,255,0.09)", margin: "2px 0 0" }} />
-                  <span style={{ fontSize: 13.5, color: "#DCE1E7" }}>
-                    {fmt(c.row.cp)} PC · nivel {formatLevel(c.row.level)}
+                  <span className="rk-costs--cell" style={{ flexDirection: "column", gap: 6 }}>
+                    <span style={{ height: 1, background: "rgba(255,255,255,0.09)", margin: "2px 0 0" }} />
+                    <span style={{ fontSize: 13.5, color: "#DCE1E7" }}>
+                      {fmt(c.row.cp)} PC · nivel {formatLevel(c.row.level)}
+                    </span>
+                    {c.level && <LevelCostLine cost={c.level} />}
                   </span>
-                  {c.level && <LevelCostLine cost={c.level} />}
                 </div>
               );
             })}
@@ -133,7 +141,8 @@ export function EntryDetail({
           </span>
           <span>PvPoke: puesto de la especie en esa liga</span>
         </span>
-        <span>Costo desde nivel {formatLevel(entry.level)}</span>
+        <span className="rk-costs--detail">Costo desde nivel {formatLevel(entry.level)}</span>
+        <span className="rk-costs-note">Costos ocultos · C para mostrar</span>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import type { Combo } from "@/lib/shortcuts";
 import { PlusIcon } from "./Icons";
 import { Kbd } from "./Kbd";
+import { u } from "@/lib/scale";
 
 /** Cartel que reemplaza la caja de stats cuando falta el Pokémon de ese lado. */
 export function EmptyBox({
@@ -18,10 +19,10 @@ export function EmptyBox({
   const isFirst = variant === "first";
   return (
     <div className={`stats stats--empty ${side === "rival" ? "stats--rival" : "stats--vos"}`}>
-      <span className="label" style={{ fontSize: 11 }}>
+      <span className="label" style={{ fontSize: "max(9px, calc(11 * var(--u)))" }}>
         {isFirst ? "EMPEZÁ POR ACÁ" : "SIN RIVAL EN CAMPO"}
       </span>
-      <span style={{ fontSize: 19, lineHeight: 1.5, color: "#B4BCC6", maxWidth: 470 }}>
+      <span style={{ fontSize: "max(14px, calc(19 * var(--u)))", lineHeight: 1.5, color: "#B4BCC6", maxWidth: u(470) }}>
         {isFirst
           ? "Armá tu equipo de tres. Queda guardado entre combates, así la próxima vez solo cargás los rivales."
           : "Cargá al Pokémon que tenés enfrente y acá aparecen sus ataques, cuánto te pegan y en cuántos turnos cargan."}

@@ -1,6 +1,7 @@
 import { LEAGUES, type LeagueKey } from "@/lib/data";
 import { ChevronDownIcon, GearIcon, PlusIcon14 } from "./Icons";
 import { Brand } from "./NavLinks";
+import { u } from "@/lib/scale";
 
 export function Header({
   league,
@@ -18,7 +19,7 @@ export function Header({
     <div
       style={{
         position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: 60, padding: "0 48px", flexShrink: 0,
+        height: u(60), padding: `0 ${u(48)}`, flexShrink: 0,
       }}
     >
       <Brand current="combate" />

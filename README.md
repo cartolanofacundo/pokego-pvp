@@ -7,8 +7,21 @@ tarda cada cargado y a quién conviene mandar. Sin API ni base de datos: todo
 es estático.
 
 Herramienta de uso individual, pensada para la compu: **Combate** y
-**Rankeador** son un lienzo fijo de **1920×1080**, sin responsivo ni soporte
-móvil, con el teclado primero y el ratón como plan B.
+**Rankeador** soportan cualquier resolución de escritorio desde **1280×720**
+(por debajo aparece scroll). No soportan mobile ni tablet, y el teclado va
+primero, con el ratón como plan B.
+
+- **Combate** está diseñado a **1920×1080** y escala en bloque: todas sus
+  medidas usan una sola variable CSS, `--u` ("1 px de diseño", ver el
+  comentario en `globals.css`), como `calc(N * var(--u))`. Por debajo de
+  1920×1080 todo achica en la misma proporción; por encima no crece más y lo
+  que sobra queda como aire. Los rieles van siempre contra los bordes.
+- **Rankeador** no escala: el texto queda a su tamaño de diseño y lo que no
+  entra se reorganiza con container queries sobre cada panel (números
+  apilados en celdas angostas, columna izquierda compacta en ventanas bajas,
+  tarjetas que cortan el nombre con "…"). Los costos del detalle se pliegan
+  con el ajuste **Costos** (Auto / Mostrar / Ocultar, tecla **C**): en Auto
+  se ocultan solos cuando las celdas quedan angostas.
 
 Tres rutas: **Inicio** (`/`, landing pública indexable con SEO y GEO —
 ver "Landing e Inicio" más abajo), **Combate** (`/combate/`, la segunda

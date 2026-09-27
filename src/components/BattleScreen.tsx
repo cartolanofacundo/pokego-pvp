@@ -1,6 +1,7 @@
 import type { LeagueKey, Pokemon } from "@/lib/data";
 import type { ActionId, Combo } from "@/lib/shortcuts";
 import { verdict } from "@/lib/verdict";
+import { u } from "@/lib/scale";
 import { Track } from "./Track";
 import { Header } from "./Header";
 import { Rail } from "./Rail";
@@ -72,7 +73,7 @@ export function BattleScreen({
       <Track />
       <Header league={league} onCycleLeague={onCycleLeague} onNewBattle={onNewBattle} onOpenConfig={onOpenConfig} />
 
-      <div style={{ position: "relative", display: "flex", gap: 40, padding: "0 48px 20px", flexGrow: 1, minHeight: 0 }}>
+      <div style={{ position: "relative", display: "flex", gap: u(40), padding: `0 ${u(48)} ${u(20)}`, flexGrow: 1, minHeight: 0 }}>
         <Rail
           side="rival"
           team={enemyTeam}

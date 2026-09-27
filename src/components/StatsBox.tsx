@@ -3,6 +3,7 @@ import { analyzeMoveset } from "@/lib/recommend";
 import { weaknessesTop3 } from "@/lib/weakness";
 import { TypeChip, TypeChips } from "./TypeChip";
 import { MoveRow } from "./MoveRow";
+import { u } from "@/lib/scale";
 
 /**
  * Caja de stats de un combatiente. Cuelga del Pokémon: esquina cortada de
@@ -48,14 +49,14 @@ export function StatsBox({
 
       {hasMoves ? (
         <>
-          <span className="label" style={{ margin: "12px 0 2px" }}>RÁPIDO</span>
+          <span className="label" style={{ margin: `${u(12)} 0 2px` }}>RÁPIDO</span>
           {analysis.fast ? (
             <MoveRow move={analysis.fast} perspective={perspective} showPower={showPower} hairline={!(perspective === "theirs" && analysis.fast.effectiveness >= 1.6 && !showPower)} index={0} />
           ) : (
             <EmptyMoves />
           )}
 
-          <span className="label" style={{ margin: "16px 0 2px" }}>CARGADOS</span>
+          <span className="label" style={{ margin: `${u(16)} 0 2px` }}>CARGADOS</span>
           {charged.length === 0 ? (
             <EmptyMoves />
           ) : (
@@ -72,15 +73,15 @@ export function StatsBox({
           )}
         </>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "18px 0 6px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: `${u(18)} 0 6px` }}>
           <span className="label">ATAQUES</span>
-          <span style={{ fontSize: 17, lineHeight: 1.5, color: "#B4BCC6" }}>
+          <span style={{ fontSize: "max(13px, calc(17 * var(--u)))", lineHeight: 1.5, color: "#B4BCC6" }}>
             El gamemaster todavía no tiene los ataques de este Pokémon.
           </span>
         </div>
       )}
 
-      <span style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 10, marginTop: u(16) }}>
         <span className="label" style={{ letterSpacing: "0.16em" }}>DÉBIL A</span>
         <span style={{ display: "flex", gap: 5 }}>
           {weak.length === 0 && <span style={{ fontSize: 13, color: "#9CA6B2" }}>Nada, sin debilidades dobles</span>}
@@ -95,7 +96,7 @@ export function StatsBox({
 
 function EmptyMoves() {
   return (
-    <div className="move-row move-row--hairline" style={{ color: "#9CA6B2", fontSize: 15 }}>
+    <div className="move-row move-row--hairline" style={{ color: "#9CA6B2", fontSize: "max(12px, calc(15 * var(--u)))" }}>
       Sin ataque en el gamemaster
     </div>
   );

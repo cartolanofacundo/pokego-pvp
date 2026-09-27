@@ -13,11 +13,20 @@ export const BOX_KEY = "pokego-pvp:box:v2";
 const BOX_KEY_V1 = "pokego-pvp:box:v1";
 export const RANKER_SETTINGS_KEY = "pokego-pvp:ranker:v1";
 
+/**
+ * Costos del detalle (PC y nivel donde rinde, polvo, caramelos, XL, energía
+ * Mega, tercer ataque). "auto": visibles si las celdas tienen lugar y ocultos
+ * si quedan angostas (lo decide el CSS con container queries).
+ */
+export type CostsMode = "auto" | "show" | "hide";
+export const COSTS_MODES: CostsMode[] = ["auto", "show", "hide"];
+
 export interface RankerSettings extends RankSettings {
   showThirdMove: boolean;
+  costs: CostsMode;
 }
 
-export const DEFAULT_RANKER_SETTINGS: RankerSettings = { maxLevel: 50, minIv: 0, showThirdMove: true };
+export const DEFAULT_RANKER_SETTINGS: RankerSettings = { maxLevel: 50, minIv: 0, showThirdMove: true, costs: "auto" };
 export const MAX_LEVEL_OPTIONS = [40, 41, 50, 51];
 export const MIN_IV_OPTIONS = [0, 1, 2, 3, 4, 5, 10, 12];
 
@@ -27,6 +36,7 @@ export function loadSettings(): RankerSettings {
     maxLevel: MAX_LEVEL_OPTIONS.includes(s.maxLevel ?? -1) ? s.maxLevel! : DEFAULT_RANKER_SETTINGS.maxLevel,
     minIv: MIN_IV_OPTIONS.includes(s.minIv ?? -1) ? s.minIv! : DEFAULT_RANKER_SETTINGS.minIv,
     showThirdMove: typeof s.showThirdMove === "boolean" ? s.showThirdMove : DEFAULT_RANKER_SETTINGS.showThirdMove,
+    costs: COSTS_MODES.includes(s.costs as CostsMode) ? (s.costs as CostsMode) : DEFAULT_RANKER_SETTINGS.costs,
   };
 }
 

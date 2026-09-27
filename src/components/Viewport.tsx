@@ -1,21 +1,22 @@
 /**
- * Lienzo fluido. Mínimo 1440×810; de ahí para arriba se adapta: los
- * elementos (fichas, cajas, tipografía) conservan su tamaño y lo que se
- * mueve con la resolución es el fondo, el horizonte y la posición de los
- * Pokémon. `--h` es el alto del lienzo (nunca menos de 810) y de él salen el
- * horizonte (47 %) y las dos filas de la cancha. Por debajo del mínimo hay
- * scroll, no deformación.
+ * Lienzo del combate y del rankeador. Mínimo 1280×720; por debajo hay scroll,
+ * no deformación.
+ *
+ * `scale` (por defecto) activa la unidad de escala `--u` (ver globals.css):
+ * todo el contenido achica o crece en la misma proporción, hasta el tamaño
+ * de diseño de 1920×1080. El combate la usa; el rankeador no (`scale={false}`):
+ * es una herramienta de tablas y números, así que el texto queda siempre a
+ * su tamaño de diseño y lo que no entra se reorganiza con container queries.
  */
-export function Viewport({ children }: { children: React.ReactNode }) {
+export function Viewport({ children, scale = true }: { children: React.ReactNode; scale?: boolean }) {
   return (
     <div
+      className={scale ? "viewport-scale" : undefined}
       style={{
         position: "relative",
         width: "100%",
-        minWidth: 1440,
+        minWidth: 1280,
         height: "var(--h)",
-        // @ts-expect-error custom property
-        "--h": "max(100vh, 810px)",
         overflow: "hidden",
       }}
     >

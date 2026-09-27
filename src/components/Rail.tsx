@@ -1,6 +1,7 @@
 import type { Pokemon } from "@/lib/data";
 import type { Combo } from "@/lib/shortcuts";
 import { Card, EmptyCard, type CardStatus, type Side } from "./Card";
+import { u } from "@/lib/scale";
 
 export function Rail({
   side,
@@ -22,7 +23,7 @@ export function Rail({
   const firstEmpty = team.findIndex((p) => p === null);
   const isRival = side === "rival";
   return (
-    <div style={{ display: "flex", flexDirection: "column", width: 288, flexShrink: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", width: u(288), flexShrink: 0, height: "100%" }}>
       <span className="label label--rail" style={{ textAlign: isRival ? "left" : "right" }}>
         {isRival ? "EQUIPO RIVAL" : "TU EQUIPO"}
       </span>
@@ -30,13 +31,13 @@ export function Rail({
       <div
         data-coach={isRival ? "rival-rail" : "ally-rail"}
         style={{
-          display: "flex", flexDirection: "column", gap: 10,
-          // Anclados a su borde (89 arriba / 147 abajo a 1080 de alto), pero sin
-          // cruzar el horizonte más de lo que cruzan en el diseño (33 px el
-          // rival por debajo, 31 px el propio por debajo): en ventanas bajas los
-          // márgenes ceden para que las fichas no invadan el campo contrario.
-          marginTop: isRival ? "min(89px, calc(var(--h) * 0.47 - 419px))" : "auto",
-          marginBottom: isRival ? 0 : "min(147px, calc(var(--h) * 0.53 - 425px))",
+          display: "flex", flexDirection: "column", gap: u(10),
+          // Anclados a su borde (89 px arriba / 147 abajo, de diseño). Las
+          // fichas escalan con --u igual que la caja y el escenario, así que
+          // esta distancia siempre deja lugar de sobra antes del horizonte,
+          // sin necesitar un tope calculado a mano para cada resolución.
+          marginTop: isRival ? u(89) : "auto",
+          marginBottom: isRival ? 0 : u(147),
         }}
       >
         {team.map((p, i) =>

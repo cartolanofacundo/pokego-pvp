@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { bestRankOf, dexRows, servesAnyLeague, servesLeague, type BestRank, type BoxEntry } from "@/lib/ranker/analysis";
 import { planCleanup, type CleanupScope } from "@/lib/ranker/cleanup";
 import { RANKER_LEAGUES, getSpecies, type RankerLeagueKey } from "@/lib/ranker/data";
@@ -13,25 +13,33 @@ import { EvolveCostLine, LevelCostLine, ThirdMoveLine } from "./CostIcons";
 export type DexMode = "utiles" | "caja";
 const dexNumber = (dex: number) => `#${String(dex).padStart(4, "0")}`;
 
-/** Ancho de pantalla desde el que la tabla ancha entra sin comprimirse. */
-const WIDE_TABLE_MIN = 1680;
+/**
+ * Ancho del contenedor de la tabla desde el que la tabla ancha entra sin
+ * comprimirse: equivale a la vieja ventana de 1680 menos los márgenes
+ * laterales del rankeador y del panel.
+ */
+const WIDE_TABLE_MIN = 1540;
 
-function useIsWide() {
+/**
+ * A diferencia de la vieja `matchMedia(1680px)` (miraba el ancho de la
+ * ventana), esto mide el propio contenedor de la tabla: lo que importa es
+ * cuánto espacio le queda a ella, no cuánto tiene la pantalla.
+ */
+function useIsWide(ref: React.RefObject<HTMLElement | null>) {
   const [wide, setWide] = useState(true);
   useEffect(() => {
-    const mq = window.matchMedia(`(min-width: ${WIDE_TABLE_MIN}px)`);
-    /* eslint-disable-next-line react-hooks/set-state-in-effect */
-    setWide(mq.matches);
-    const onChange = () => setWide(mq.matches);
-    mq.addEventListener("change", onChange);
-    // Redundante a propósito: algunos entornos (paneles embebidos, emulación
-    // de tamaño) no disparan el evento "change" del MediaQueryList al
-    // redimensionar, aunque sí el resize de window.
-    window.addEventListener("resize", onChange);
+    const el = ref.current;
+    if (!el) return;
+    const check = () => setWide(el.clientWidth >= WIDE_TABLE_MIN);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    window.addEventListener("resize", check);
     return () => {
-      mq.removeEventListener("change", onChange);
-      window.removeEventListener("resize", onChange);
+      ro.disconnect();
+      window.removeEventListener("resize", check);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return wide;
 }
@@ -59,7 +67,8 @@ export function DexView({
   onDeleteMany: (ids: string[]) => void;
   onRestore: (entries: BoxEntry[]) => void;
 }) {
-  const wide = useIsWide();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const wide = useIsWide(scrollRef);
   const [query, setQuery] = useState("");
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [scope, setScope] = useState<CleanupScope>("any");
@@ -250,7 +259,7 @@ export function DexView({
         </div>
       )}
 
-      <div className="scroll-list" style={{ minHeight: 0, flexGrow: 1, overflowX: wide || mode === "caja" ? "hidden" : "auto" }}>
+      <div ref={scrollRef} className="scroll-list" style={{ minHeight: 0, flexGrow: 1, overflowX: wide || mode === "caja" ? "hidden" : "auto" }}>
         {mode === "utiles" ? (
           rows.length === 0 ? (
             <p className="rk-note" style={{ padding: "12px 4px" }}>Ningún Pokémon de tu caja tiene rango 100 o mejor en {leagueLabel}.</p>
@@ -262,7 +271,9 @@ export function DexView({
         ) : box.length === 0 ? (
           <p className="rk-note" style={{ padding: "12px 4px" }}>Tu caja está vacía. Cargá Pokémon desde la pestaña Cargar, o importá un archivo exportado antes.</p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+          // Columnas de 300 px como mínimo: lo que ocupa una tarjeta (sprite,
+          // IV, rango y PvPoke, acciones) sin que nada se pise.
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
             {box.map(({ entry, species, best }) => (
               <BoxCard
                 key={entry.id}
@@ -307,7 +318,8 @@ function XIcon() {
 }
 
 function WideDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof dexRows>; showThird: boolean; onOpen: (e: BoxEntry) => void }) {
-  const cols = "118px minmax(240px,1.4fr) 160px 140px 180px 104px 130px 1.4fr 160px 44px";
+  // La última columna mide el botón Ver (34) más el padding de la celda (2×10).
+  const cols = "118px minmax(240px,1.4fr) 160px 140px 180px 104px 130px 1.4fr 160px 54px";
   return (
     <table className="rk-table" style={{ tableLayout: "fixed" }}>
       <colgroup>{cols.split(" ").map((w, i) => <col key={i} style={{ width: w }} />)}</colgroup>
@@ -355,7 +367,8 @@ function WideDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof dex
 }
 
 function DenseDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof dexRows>; showThird: boolean; onOpen: (e: BoxEntry) => void }) {
-  const cols = "82px minmax(170px,1.3fr) 118px 112px 150px 104px 1.4fr 80px 36px";
+  // La última columna mide el botón Ver (30) más el padding de la celda (2×10).
+  const cols = "82px minmax(170px,1.3fr) 118px 112px 150px 104px 1.4fr 80px 50px";
   return (
     <table className="rk-table" style={{ tableLayout: "fixed" }}>
       <colgroup>{cols.split(" ").map((w, i) => <col key={i} style={{ width: w }} />)}</colgroup>
@@ -418,8 +431,11 @@ function BoxCard({
   onDelete: () => void;
 }) {
   if (!species) return null;
+  const actionStyle: React.CSSProperties = { width: 26, height: 26, border: 0, borderRadius: 7, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
+  // Tres columnas: sprite | texto | acciones. Las acciones tienen su propia
+  // columna (apiladas arriba a la derecha), así nunca tapan el nombre.
   return (
-    <div style={{ position: "relative", minWidth: 0 }}>
+    <div className="rk-box-card" style={{ position: "relative", minWidth: 0 }}>
       {cleanupMark && (
         <span className={`rk-card__mark rk-card__mark--${cleanupMark === "keep" ? "keep" : "drop"}`}>
           {cleanupMark === "keep" ? "SE QUEDA" : "SE BORRA"}
@@ -430,30 +446,20 @@ function BoxCard({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="rk-sprite" src={withBasePath(`/sprites/pixel/${species.id}.png`)} alt="" style={{ width: 112, height: 112, margin: -8 }} />
         </span>
-        <div style={{ flexGrow: 1, alignSelf: "stretch", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 4, minWidth: 0 }}>
-          <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-            <span style={{ display: "flex", alignItems: "baseline", gap: 7, minWidth: 0 }}>
-              <span style={{ fontSize: 15.5, fontWeight: 600, whiteSpace: "nowrap" }}>{species.name}</span>
-              <span className="rk-num" style={{ fontSize: 11, color: "#9CA6B2" }}>{dexNumber(species.dex)}</span>
-            </span>
-            <span style={{ display: "flex", gap: 4 }}>
-              <button type="button" aria-label="Ver detalle" onClick={onOpen} style={{ width: 26, height: 26, border: 0, borderRadius: 7, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <EyeIcon size={15} />
-              </button>
-              <button type="button" aria-label="Quitar" onClick={onDelete} style={{ width: 26, height: 26, border: 0, borderRadius: 7, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <XIcon />
-              </button>
-            </span>
+        <div style={{ flex: "1 1 auto", alignSelf: "stretch", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 4, minWidth: 0 }}>
+          <span style={{ display: "flex", alignItems: "baseline", gap: 7, minWidth: 0 }}>
+            <span className="rk-box-card__name" title={species.name}>{species.name}</span>
+            <span className="rk-num rk-box-card__dex" style={{ fontSize: 11, color: "#9CA6B2", flexShrink: 0 }}>{dexNumber(species.dex)}</span>
           </span>
-          <span style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span className="rk-num" style={{ fontSize: 17, fontWeight: 600 }}>{entry.atk} / {entry.def} / {entry.sta}</span>
-            <span className="rk-num" style={{ fontSize: 11, color: "#A8B0BB" }}>nv {formatLevel(entry.level)}</span>
+          <span style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            <span className="rk-num" style={{ fontSize: 17, fontWeight: 600, whiteSpace: "nowrap" }}>{entry.atk} / {entry.def} / {entry.sta}</span>
+            <span className="rk-num" style={{ fontSize: 11, color: "#A8B0BB", whiteSpace: "nowrap" }}>nv {formatLevel(entry.level)}</span>
           </span>
-          <span style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
+          <span style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 10, marginTop: 4 }}>
             <span style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
               <span className="label" style={{ fontSize: 9.5 }}>Rango IV</span>
               {best ? (
-                <span style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span style={{ display: "flex", alignItems: "baseline", columnGap: 6, flexWrap: "wrap" }}>
                   <span className={`rk-rank ${best.rank <= 100 ? "rk-rank--good" : ""}`} style={{ fontSize: 22 }}>#{fmt(best.rank)}</span>
                   <span className="rk-cost" style={{ fontSize: 10, textTransform: "uppercase", color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>{best.league.short}</span>
                 </span>
@@ -469,6 +475,14 @@ function BoxCard({
             </span>
           </span>
         </div>
+        <span style={{ display: "flex", flexDirection: "column", gap: 4, alignSelf: "flex-start", flexShrink: 0 }}>
+          <button type="button" aria-label="Ver detalle" onClick={onOpen} style={actionStyle}>
+            <EyeIcon size={15} />
+          </button>
+          <button type="button" aria-label="Quitar" onClick={onDelete} style={actionStyle}>
+            <XIcon />
+          </button>
+        </span>
       </div>
     </div>
   );

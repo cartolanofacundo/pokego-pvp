@@ -119,25 +119,22 @@ function StatBar({ label, value }: { label: string; value: number }) {
 /** Tarjeta de la especie elegida: sprite, nombre, tipos, stats base y navegación entre especies. */
 export function SpeciesCard({ species, onPick }: { species: Species; onPick: (s: Species) => void }) {
   const { prev, next } = adjacentSpecies(species.id);
+  // La tarjeta es un contenedor (`.rk-species`): el nombre, el sprite y las
+  // pastillas de anterior/siguiente se acomodan a su ancho (ver globals.css).
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div className="rk-species" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <span
-          style={{
-            position: "relative", width: 112, height: 112, display: "flex", alignItems: "center", justifyContent: "center",
-            background: "radial-gradient(56px 56px at 50% 55%, rgba(150,195,250,0.16), rgba(150,195,250,0) 100%)", flexShrink: 0,
-          }}
-        >
+        <span className="rk-species__sprite">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="rk-sprite" src={withBasePath(`/sprites/pixel/${species.id}.png`)} alt="" style={{ width: 150, height: 150, margin: -19 }} />
+          <img className="rk-sprite" src={withBasePath(`/sprites/pixel/${species.id}.png`)} alt="" />
         </span>
         <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
-          <span style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-            <span className="display" style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>{species.name}</span>
-            <span className="rk-num" style={{ fontSize: 13, fontWeight: 600, color: "#A8B0BB" }}>{dexNumber(species.dex)}</span>
+          <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+            <span className="rk-num" style={{ fontSize: 12, fontWeight: 600, color: "#A8B0BB" }}>{dexNumber(species.dex)}</span>
+            <span className="display rk-species__name" title={species.name}>{species.name}</span>
           </span>
           <TypeChips types={species.types} variant="header" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 4 }}>
+          <div className="rk-species__stats">
             <StatBar label="ATQ" value={species.atk} />
             <StatBar label="DEF" value={species.def} />
             <StatBar label="PS" value={species.sta} />
@@ -145,33 +142,19 @@ export function SpeciesCard({ species, onPick }: { species: Species; onPick: (s:
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
         {prev ? (
-          <button
-            type="button"
-            onClick={() => onPick(prev)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6, height: 32, padding: "0 10px 0 6px", border: 0, borderRadius: 8,
-              background: "rgba(255,255,255,0.07)", fontSize: 13, color: "#B4BCC6",
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 3L4.5 7l4 4" stroke="#C2C9D2" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="rk-num" style={{ fontSize: 11.5, color: "#9CA6B2" }}>{dexNumber(prev.dex)}</span>
-            {prev.name}
+          <button type="button" className="rk-species__nav" onClick={() => onPick(prev)} aria-label={`Anterior: ${prev.name}`} style={{ padding: "0 10px 0 6px" }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><path d="M8.5 3L4.5 7l4 4" stroke="#C2C9D2" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span className="rk-num" style={{ fontSize: 11.5, color: "#9CA6B2", flexShrink: 0 }}>{dexNumber(prev.dex)}</span>
+            <span className="rk-species__nav-name">{prev.name}</span>
           </button>
         ) : <span />}
         {next ? (
-          <button
-            type="button"
-            onClick={() => onPick(next)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6, height: 32, padding: "0 6px 0 10px", border: 0, borderRadius: 8,
-              background: "rgba(255,255,255,0.07)", fontSize: 13, color: "#B4BCC6",
-            }}
-          >
-            {next.name}
-            <span className="rk-num" style={{ fontSize: 11.5, color: "#9CA6B2" }}>{dexNumber(next.dex)}</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 3l4 4-4 4" stroke="#C2C9D2" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <button type="button" className="rk-species__nav" onClick={() => onPick(next)} aria-label={`Siguiente: ${next.name}`} style={{ padding: "0 6px 0 10px" }}>
+            <span className="rk-species__nav-name">{next.name}</span>
+            <span className="rk-num" style={{ fontSize: 11.5, color: "#9CA6B2", flexShrink: 0 }}>{dexNumber(next.dex)}</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><path d="M5.5 3l4 4-4 4" stroke="#C2C9D2" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         ) : <span />}
       </div>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Viewport } from "@/components/Viewport";
+import { u } from "@/lib/scale";
 import { Brand } from "@/components/NavLinks";
 import { bestRankOf, type BoxEntry } from "@/lib/ranker/analysis";
 import { SPECIES, familyRootOf, getSpecies, type RankerLeagueKey, type Species } from "@/lib/ranker/data";
@@ -9,6 +10,7 @@ import { fmt } from "@/lib/ranker/format";
 import type { IvSubmit } from "./IvInput";
 import { loadJSON, saveJSON } from "@/lib/storage";
 import {
+  COSTS_MODES,
   DEFAULT_RANKER_SETTINGS,
   MAX_LEVEL_OPTIONS,
   MIN_IV_OPTIONS,
@@ -182,6 +184,11 @@ export function RankerApp() {
         e.preventDefault();
         setEditingId(selected.id);
       }
+      // C recorre Costos: Auto → Mostrar → Ocultar.
+      if (e.key.toLowerCase() === "c" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setSettings((s) => ({ ...s, costs: COSTS_MODES[(COSTS_MODES.indexOf(s.costs) + 1) % COSTS_MODES.length] }));
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -190,16 +197,16 @@ export function RankerApp() {
   const set = (patch: Partial<RankerSettings>) => setSettings((s) => ({ ...s, ...patch }));
 
   return (
-    <Viewport>
+    <Viewport scale={false}>
       <main style={{ position: "relative", width: "100%", height: "var(--h)", display: "flex", flexDirection: "column", overflow: "hidden", background: "radial-gradient(1000px 600px at 20% 0%, rgba(92,152,236,0.10), rgba(92,152,236,0) 70%), #080A0D" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, padding: "0 48px", flexShrink: 0, boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.08)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: u(60), padding: `0 ${u(48)}`, flexShrink: 0, boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.08)" }}>
           <Brand current="rankeador" />
           <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button type="button" className="btn" style={{ height: 44 }} onClick={doExport} disabled={!entries.length}>
+            <button type="button" className="btn" onClick={doExport} disabled={!entries.length}>
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 9.5V1.8M4.4 4.6l3.1-3 3.1 3M2 9.5v3.2h11V9.5" stroke="#F2F3F5" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>
               Exportar
             </button>
-            <button type="button" className="btn" style={{ height: 44 }} onClick={() => fileRef.current?.click()}>
+            <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8v7.7M4.4 6.6l3.1 3 3.1-3M2 9.5v3.2h11V9.5" stroke="#F2F3F5" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>
               Importar
             </button>
@@ -217,7 +224,7 @@ export function RankerApp() {
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "4px 48px 16px", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: `4px ${u(48)} 16px`, flexShrink: 0, flexWrap: "wrap" }}>
           <span role="tablist" style={{ display: "flex", gap: 6 }}>
             <button type="button" role="tab" className="rk-tab" aria-selected={view === "cargar"} onClick={() => setView("cargar")}>
               Cargar
@@ -226,15 +233,15 @@ export function RankerApp() {
               Mi pokédex <span className="rk-count">{entries.length}</span>
             </button>
           </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <Setting label="NIVEL MÁXIMO">
+          <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px 18px", flexWrap: "wrap" }}>
+            <Setting label="NIVEL MÁX" name="nivel máximo">
               {MAX_LEVEL_OPTIONS.map((v) => (
                 <button key={v} type="button" aria-pressed={settings.maxLevel === v} onClick={() => set({ maxLevel: v })}>
                   {v}
                 </button>
               ))}
             </Setting>
-            <Setting label="IV MÍNIMO">
+            <Setting label="IV MÍN" name="IV mínimo">
               {MIN_IV_OPTIONS.map((v) => (
                 <button key={v} type="button" aria-pressed={settings.minIv === v} onClick={() => set({ minIv: v })}>
                   {v}
@@ -249,11 +256,22 @@ export function RankerApp() {
                 Ocultar
               </button>
             </Setting>
+            <Setting label="COSTOS" title="PC, nivel, polvo y caramelos del detalle. Tecla C.">
+              <button type="button" aria-pressed={settings.costs === "auto"} onClick={() => set({ costs: "auto" })}>
+                Auto
+              </button>
+              <button type="button" aria-pressed={settings.costs === "show"} onClick={() => set({ costs: "show" })}>
+                Mostrar
+              </button>
+              <button type="button" aria-pressed={settings.costs === "hide"} onClick={() => set({ costs: "hide" })}>
+                Ocultar
+              </button>
+            </Setting>
           </span>
         </div>
 
         {(pendingImport || importError || importedOk !== null) && (
-          <div className={`rk-band ${importError ? "rk-band--red" : importedOk !== null ? "rk-band--green" : "rk-band--amber"}`} style={{ margin: "0 48px 16px", flexShrink: 0 }}>
+          <div className={`rk-band ${importError ? "rk-band--red" : importedOk !== null ? "rk-band--green" : "rk-band--amber"}`} style={{ margin: `0 ${u(48)} 16px`, flexShrink: 0 }}>
             <span className="rk-band__dot" style={{ background: importError ? "#FF7E7E" : importedOk !== null ? "#52E79D" : "#F8C066" }} />
             {importError ? (
               <span style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -303,11 +321,13 @@ export function RankerApp() {
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 28, padding: "0 48px 24px", flexGrow: 1, minHeight: 0 }}>
+        <div style={{ display: "flex", gap: 28, padding: `0 ${u(48)} 24px`, flexGrow: 1, minHeight: 0 }}>
           {view === "cargar" ? (
             <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "clamp(420px, 27vw, 500px)", flexShrink: 0, minHeight: 0 }}>
-                <div className="rk-panel" style={{ gap: 14, overflow: "visible", clipPath: "none" }}>
+              {/* La columna scrollea entera si los tres paneles no entran (ventanas
+                  bajas): así ninguno se aplasta y "Cargados" conserva 200 px. */}
+              <div className="scroll-list rk-left" style={{ display: "flex", flexDirection: "column", gap: 14, width: "clamp(360px, 27vw, 500px)", flexShrink: 0, minHeight: 0, overflowY: "auto" }}>
+                <div className="rk-panel" style={{ gap: 14, overflow: "visible", clipPath: "none", flexShrink: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <span className="label" style={{ fontSize: 11 }}>Especie</span>
                     <span className="rk-cost" style={{ fontSize: 11 }}>PASO 1</span>
@@ -317,7 +337,7 @@ export function RankerApp() {
                 </div>
 
                 {species && !editingEntry && (
-                  <div className="rk-panel" style={{ gap: 12 }}>
+                  <div className="rk-panel" style={{ gap: 12, flexShrink: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span className="label" style={{ fontSize: 11 }}>IV y PC</span>
                       <span className="rk-cost" style={{ fontSize: 11 }}>ATQ · DEF · PS — PC</span>
@@ -327,7 +347,7 @@ export function RankerApp() {
                 )}
 
                 {editingEntry && (
-                  <div className="rk-panel" style={{ gap: 12 }}>
+                  <div className="rk-panel" style={{ gap: 12, flexShrink: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span className="label" style={{ fontSize: 11 }}>Editar un cargado</span>
                       <span className="rk-cost" style={{ fontSize: 11 }}>E EN LA FILA · ESC CANCELA</span>
@@ -343,11 +363,11 @@ export function RankerApp() {
                 )}
 
                 {species && (
-                  <div className="rk-panel" style={{ gap: 10, flexGrow: 1, minHeight: 0 }}>
+                  <div className="rk-panel" style={{ gap: 10, flex: "1 0 200px", minHeight: 200 }}>
                     <span className="label" style={{ fontSize: 11 }}>
                       CARGADOS DE ESTA LÍNEA · {familyEntries.length}
                     </span>
-                    <div className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 2, minHeight: 0 }}>
+                    <div className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 2, flex: "1 1 auto", minHeight: 0 }}>
                       {familyEntries.length === 0 && <span className="rk-note">Todavía ninguno. Tipeá los IV y el CP y apretá Enter.</span>}
                       {familyEntries.map((e) => (
                         <EntryRow
@@ -402,11 +422,11 @@ export function RankerApp() {
   );
 }
 
-function Setting({ label, children }: { label: string; children: React.ReactNode }) {
+function Setting({ label, name, title, children }: { label: string; name?: string; title?: string; children: React.ReactNode }) {
   return (
-    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <span style={{ display: "flex", alignItems: "center", gap: 8 }} title={title}>
       <span className="label" style={{ fontSize: 10 }}>{label}</span>
-      <span className="rk-seg" role="group" aria-label={label.toLowerCase()}>
+      <span className="rk-seg" role="group" aria-label={name ?? label.toLowerCase()}>
         {children}
       </span>
     </span>
@@ -431,36 +451,42 @@ function EntryRow({
   const species = getSpecies(entry.speciesId)!;
   const best = useMemo(() => bestRankOf(entry, settings), [entry, settings]);
 
+  // Fila de 62 px en tres columnas: sprite + nombre/IV (se corta con "…"),
+  // los dos chips apilados y las dos acciones apiladas. Así entra en la
+  // columna más angosta (360 px) sin que nada se pise ni se corte.
+  const actionStyle: React.CSSProperties = { width: 26, height: 26, padding: 0, borderRadius: 7, background: "rgba(255,255,255,0.07)", color: "#9CA6B2" };
   return (
-    <div className={`rk-row rk-list-enter ${current ? "rk-row--current" : ""}`} style={{ paddingRight: 6, height: 62 }}>
-      <button type="button" onClick={onSelect} style={{ display: "flex", alignItems: "center", gap: 8, flexGrow: 1, minWidth: 0, height: 62, border: 0, background: "transparent", color: "inherit", textAlign: "left", padding: 0 }}>
+    <div className={`rk-row rk-list-enter ${current ? "rk-row--current" : ""}`} style={{ paddingRight: 6, height: 62, flexShrink: 0 }}>
+      <button type="button" onClick={onSelect} style={{ display: "flex", alignItems: "center", gap: 8, flex: "1 1 auto", minWidth: 0, height: 62, border: 0, background: "transparent", color: "inherit", textAlign: "left", padding: 0 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="rk-sprite" src={withBasePath(`/sprites/pixel/${species.id}.png`)} alt="" style={{ width: 72, height: 72, margin: "-10px -6px -10px -8px" }} />
-        <span style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0, flexShrink: 0, width: 108 }}>
+        <span style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0, flex: "1 1 auto" }}>
           <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {species.name}
             {entry.variant !== "normal" && <span className="rk-cost" style={{ fontSize: 10.5 }}> {VARIANT_LABEL[entry.variant]}</span>}
           </span>
           <span className="rk-num" style={{ fontSize: 13, fontWeight: 600, color: "#DCE1E7", whiteSpace: "nowrap" }}>{entry.atk} / {entry.def} / {entry.sta}</span>
         </span>
-        {best && (
-          <span className={`rk-chip ${best.rank <= 100 ? "rk-chip--good" : ""}`}>
-            <span className="rk-rank" style={{ fontSize: 17, color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>#{fmt(best.rank)}</span>
-            <span className="rk-cost" style={{ fontSize: 10.5, textTransform: "uppercase", color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>{best.league.short}</span>
-          </span>
-        )}
-        {best?.pvpoke && (
-          <span className="rk-chip">
-            <span className="rk-cost" style={{ fontSize: 9.5 }}>PVP</span>
-            <span className="rk-rank" style={{ fontSize: 17 }}>#{fmt(best.pvpoke)}</span>
-          </span>
-        )}
+        <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
+          {best && (
+            <span className={`rk-chip ${best.rank <= 100 ? "rk-chip--good" : ""}`} style={{ height: 25 }}>
+              <span className="rk-rank" style={{ fontSize: 16, color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>#{fmt(best.rank)}</span>
+              <span className="rk-cost" style={{ fontSize: 10, textTransform: "uppercase", color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>{best.league.short}</span>
+            </span>
+          )}
+          {best?.pvpoke && (
+            <span className="rk-chip" style={{ height: 25 }}>
+              <span className="rk-cost" style={{ fontSize: 9.5 }}>PVP</span>
+              <span className="rk-rank" style={{ fontSize: 16 }}>#{fmt(best.pvpoke)}</span>
+            </span>
+          )}
+        </span>
       </button>
-      <span style={{ display: "flex", gap: 4 }}>
-        <button type="button" className="btn btn--icon" style={{ width: 30, height: 30, background: "rgba(255,255,255,0.07)" }} aria-label="Editar" onClick={onEdit}>
+      <span style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
+        <button type="button" className="btn btn--icon" style={actionStyle} aria-label="Editar" onClick={onEdit}>
           <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 12h2.6L11.8 4.8 9.2 2.2 2 9.4V12z" stroke="#A8B0BB" strokeWidth={1.4} strokeLinejoin="round" /></svg>
         </button>
-        <button type="button" className="btn btn--icon" style={{ width: 30, height: 30, background: "rgba(255,255,255,0.07)", color: "#9CA6B2" }} aria-label="Quitar de la caja" onClick={onDelete}>
+        <button type="button" className="btn btn--icon" style={actionStyle} aria-label="Quitar de la caja" onClick={onDelete}>
           ×
         </button>
       </span>

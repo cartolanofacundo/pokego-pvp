@@ -3,7 +3,11 @@
 // lectura con reflejo): campos rival/propio, banda de sombra, horizonte,
 // scanline, viñeta, marcas en L y ficha VS. Todo decorativo (pointer-events: none).
 // El horizonte va al 47 % del alto del lienzo (508/1080 en el diseño) y se
-// apaga a 336 px de cada borde, antes de tocar los rieles (48 + 288).
+// apaga a 336 px de cada borde, antes de tocar los rieles (48 + 288). Todas
+// las medidas están en `u()`: la pista entera achica o crece con --u, junto
+// con los rieles, la caja y los sprites (ver globals.css).
+
+import { u } from "@/lib/scale";
 
 const HORIZON = "calc(var(--h) * 0.47)";
 
@@ -29,20 +33,20 @@ export function Track() {
       />
       <div
         style={{
-          position: "absolute", left: 0, right: 0, top: `calc(${HORIZON} - 110px)`, height: 200,
+          position: "absolute", left: 0, right: 0, top: `calc(${HORIZON} - ${u(110)})`, height: u(200),
           background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.34) 50%, rgba(0,0,0,0) 100%)",
         }}
       />
       <div
         style={{
-          position: "absolute", left: 336, right: 336, top: `calc(${HORIZON} - 8px)`, height: 16,
+          position: "absolute", left: u(336), right: u(336), top: `calc(${HORIZON} - ${u(8)})`, height: u(16),
           background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0) 100%)",
           filter: "blur(5px)",
         }}
       />
       <div
         style={{
-          position: "absolute", left: 336, right: 336, top: `calc(${HORIZON} - 1px)`, height: 2,
+          position: "absolute", left: u(336), right: u(336), top: `calc(${HORIZON} - ${u(1)})`, height: u(2),
           background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.58) 50%, rgba(255,255,255,0) 100%)",
         }}
       />
@@ -60,34 +64,34 @@ export function Track() {
         }}
       />
 
-      {mark({ left: 48, top: 88, width: 22, height: 1 })}
-      {mark({ left: 48, top: 88, width: 1, height: 22 })}
-      {mark({ right: 48, top: 88, width: 22, height: 1 })}
-      {mark({ right: 48, top: 88, width: 1, height: 22 })}
-      {mark({ left: 48, bottom: 36, width: 22, height: 1 })}
-      {mark({ left: 48, bottom: 36, width: 1, height: 22 })}
-      {mark({ right: 48, bottom: 36, width: 22, height: 1 })}
-      {mark({ right: 48, bottom: 36, width: 1, height: 22 })}
+      {mark({ left: u(48), top: u(88), width: u(22), height: u(1) })}
+      {mark({ left: u(48), top: u(88), width: u(1), height: u(22) })}
+      {mark({ right: u(48), top: u(88), width: u(22), height: u(1) })}
+      {mark({ right: u(48), top: u(88), width: u(1), height: u(22) })}
+      {mark({ left: u(48), bottom: u(36), width: u(22), height: u(1) })}
+      {mark({ left: u(48), bottom: u(36), width: u(1), height: u(22) })}
+      {mark({ right: u(48), bottom: u(36), width: u(22), height: u(1) })}
+      {mark({ right: u(48), bottom: u(36), width: u(1), height: u(22) })}
 
       <span
         style={{
-          position: "absolute", left: "50%", top: `calc(${HORIZON} - 15px)`, transform: "translateX(-50%)",
-          display: "flex", alignItems: "center", gap: 14,
+          position: "absolute", left: "50%", top: `calc(${HORIZON} - ${u(15)})`, transform: "translateX(-50%)",
+          display: "flex", alignItems: "center", gap: u(14),
         }}
       >
-        <span style={{ width: 90, height: 1, background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.36) 100%)" }} />
+        <span style={{ width: u(90), height: 1, background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.36) 100%)" }} />
         <span
           className="mono"
           style={{
-            display: "inline-flex", alignItems: "center", height: 30, padding: "0 16px 0 18px",
+            display: "inline-flex", alignItems: "center", height: u(30), padding: `0 ${u(16)} 0 ${u(18)}`,
             background: "#0B0D11", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.34)",
-            clipPath: "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)",
-            fontSize: 13, fontWeight: 600, letterSpacing: "0.3em", color: "#DCE1E7",
+            clipPath: `polygon(${u(9)} 0, 100% 0, calc(100% - ${u(9)}) 100%, 0 100%)`,
+            fontSize: u(13), fontWeight: 600, letterSpacing: "0.3em", color: "#DCE1E7",
           }}
         >
           VS
         </span>
-        <span style={{ width: 90, height: 1, background: "linear-gradient(90deg, rgba(255,255,255,0.36) 0%, rgba(255,255,255,0) 100%)" }} />
+        <span style={{ width: u(90), height: 1, background: "linear-gradient(90deg, rgba(255,255,255,0.36) 0%, rgba(255,255,255,0) 100%)" }} />
       </span>
     </div>
   );

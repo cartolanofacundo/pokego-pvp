@@ -14,6 +14,7 @@ import {
   type Combo,
 } from "@/lib/shortcuts";
 import { WarningIcon, ResetIcon } from "./Icons";
+import { u } from "@/lib/scale";
 
 type Phase =
   | { kind: "waiting" }
@@ -79,17 +80,23 @@ export function ShortcutModal({
   const canSave = phase.kind === "captured" || phase.kind === "conflict";
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 50 }} role="dialog" aria-modal="true" aria-labelledby="shortcut-title">
+    // Centrado con flex (ver SearchModal: la animación de .panel pisa cualquier transform).
+    <div
+      style={{ position: "absolute", inset: 0, zIndex: 50, display: "flex", justifyContent: "center", alignItems: "center", padding: u(40) }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="shortcut-title"
+    >
       <div style={{ position: "absolute", inset: 0, background: "rgba(7,9,12,0.76)" }} />
       <div
         className="panel"
         style={{
-          position: "absolute", top: 300, left: "50%", transform: "translateX(-50%)", width: 560,
-          display: "flex", flexDirection: "column", padding: "24px 24px 18px",
-          clipPath: "polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%)",
+          width: u(560), maxWidth: "100%", maxHeight: "100%", overflowY: "auto",
+          display: "flex", flexDirection: "column", padding: `${u(24)} ${u(24)} ${u(18)}`,
+          clipPath: `polygon(${u(24)} 0, 100% 0, 100% calc(100% - ${u(24)}), calc(100% - ${u(24)}) 100%, 0 100%)`,
         }}
       >
-        <span className="panel__edge" style={{ left: 24 }} />
+        <span className="panel__edge" style={{ left: u(24) }} />
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#A8B0BB" }}>EDITAR ATAJO</span>
@@ -106,8 +113,8 @@ export function ShortcutModal({
         <div
           style={{
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12,
-            height: 124, marginTop: 18, background: boxBg, boxShadow: ring,
-            clipPath: "polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px)",
+            height: u(124), marginTop: 18, background: boxBg, boxShadow: ring,
+            clipPath: `polygon(${u(14)} 0, 100% 0, 100% 100%, 0 100%, 0 ${u(14)})`,
           }}
           aria-live="polite"
         >

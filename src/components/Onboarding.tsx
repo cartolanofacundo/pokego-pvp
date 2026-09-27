@@ -1,6 +1,7 @@
 import type { ActionId, Combo } from "@/lib/shortcuts";
 import { Kbd } from "./Kbd";
 import { GearIcon } from "./Icons";
+import { u } from "@/lib/scale";
 
 /** Bienvenida (Onboarding.dc.html). Se muestra una sola vez. */
 export function Onboarding({
@@ -13,12 +14,12 @@ export function Onboarding({
   onStartTour: () => void;
 }) {
   const row = (label: string, combo: Combo | null, extra?: string) => (
-    <span style={{ display: "flex", alignItems: "center", gap: 12, height: 50, padding: "0 16px", background: "rgba(255,255,255,0.04)" }}>
-      <span style={{ fontSize: 15.5, fontWeight: 500, flexGrow: 1, minWidth: 0 }}>{label}</span>
+    <span style={{ display: "flex", alignItems: "center", gap: 12, height: u(50), padding: `0 ${u(16)}`, background: "rgba(255,255,255,0.04)" }}>
+      <span style={{ fontSize: "max(12px, calc(15.5 * var(--u)))", fontWeight: 500, flexGrow: 1, minWidth: 0 }}>{label}</span>
       {extra ? (
-        <span className="kbd" style={{ height: 27, padding: "0 10px", background: "rgba(255,255,255,0.08)", fontSize: 12, color: "#DDE2E8" }}>{extra}</span>
+        <span className="kbd" style={{ height: u(27), padding: `0 ${u(10)}`, background: "rgba(255,255,255,0.08)", fontSize: "max(9px, calc(12 * var(--u)))", color: "#DDE2E8" }}>{extra}</span>
       ) : (
-        <Kbd combo={combo} style={{ height: 27, padding: "0 10px", background: "rgba(255,255,255,0.08)", fontSize: 12, color: "#DDE2E8" }} />
+        <Kbd combo={combo} style={{ height: u(27), padding: `0 ${u(10)}`, background: "rgba(255,255,255,0.08)", fontSize: "max(9px, calc(12 * var(--u)))", color: "#DDE2E8" }} />
       )}
     </span>
   );
@@ -39,30 +40,38 @@ export function Onboarding({
   const allyLabel = allyDigits.length ? `${allyDigits[0].mods ? allyDigits[0].mods + " " : ""}${allyDigits.map((d) => d.key).join(" ")}` : "—";
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 60 }} role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+    // Centrado con flex, no con translateX: la animación de entrada de .panel
+    // termina en `transform: none` y pisaba el translate (quedaba corrido a
+    // la derecha y cortado).
+    <div
+      style={{ position: "absolute", inset: 0, zIndex: 60, display: "flex", justifyContent: "center", alignItems: "center", padding: u(40) }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-title"
+    >
       <div className="veil" />
       <div
         className="panel panel--cut-28"
         style={{
-          position: "absolute", top: 132, left: "50%", transform: "translateX(-50%)", width: 860,
-          display: "flex", flexDirection: "column", padding: "44px 48px 36px",
+          width: u(860), maxWidth: "100%", maxHeight: "100%", overflowY: "auto",
+          display: "flex", flexDirection: "column", padding: `${u(44)} ${u(48)} ${u(36)}`,
         }}
       >
         <span className="panel__edge" />
         <span className="label" style={{ fontSize: 11, letterSpacing: "0.2em", color: "#A8B0BB" }}>PRIMERA VEZ ACÁ</span>
-        <span id="welcome-title" className="display" style={{ fontSize: 52, fontWeight: 800, letterSpacing: "-0.035em", lineHeight: 1.04, marginTop: 16 }}>
+        <span id="welcome-title" className="display" style={{ fontSize: "max(30px, calc(52 * var(--u)))", fontWeight: 800, letterSpacing: "-0.035em", lineHeight: 1.04, marginTop: u(16) }}>
           Todo el matchup,
           <br />
           de un vistazo
         </span>
-        <span style={{ fontSize: 18, lineHeight: 1.55, color: "#BFC6CE", marginTop: 16, maxWidth: 640 }}>
+        <span style={{ fontSize: "max(14px, calc(18 * var(--u)))", lineHeight: 1.55, color: "#BFC6CE", marginTop: u(16), maxWidth: u(640) }}>
           Cargá los seis Pokémon del combate y la pantalla te muestra, mientras jugás en el celular, qué ataque te pega fuerte, cuánto tarda
           cada cargado y a quién conviene mandar.
         </span>
 
-        <span className="label" style={{ fontSize: 10.5, letterSpacing: "0.2em", margin: "34px 0 16px" }}>ATAJOS POR DEFECTO</span>
+        <span className="label" style={{ fontSize: 10.5, letterSpacing: "0.2em", margin: `${u(34)} 0 ${u(16)}` }}>ATAJOS POR DEFECTO</span>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px 24px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: `${u(10)} ${u(24)}` }}>
           {row("Agregar aliado", shortcuts.addAlly)}
           {row("Agregar rival", shortcuts.addRival)}
           {row("Poner un aliado en campo", null, allyLabel)}
@@ -71,19 +80,19 @@ export function Onboarding({
           {row("Cerrar o cancelar", shortcuts.close)}
         </div>
 
-        <span style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 10, marginTop: u(18) }}>
           <GearIcon size={16} color="#A8B0BB" />
-          <span style={{ fontSize: 14.5, color: "#B4BCC6" }}>
+          <span style={{ fontSize: "max(12px, calc(14.5 * var(--u)))", color: "#B4BCC6" }}>
             Cualquiera de estos se cambia desde <span style={{ fontWeight: 600, color: "#7FE0EF" }}>Configuración</span>, con la tecla que te
             quede cómoda.
           </span>
         </span>
 
-        <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, marginTop: 34 }}>
-          <button type="button" className="btn btn--ghost" style={{ height: 48, padding: "0 22px", borderRadius: 0, fontSize: 15 }} onClick={onSkip}>
+        <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, marginTop: u(34) }}>
+          <button type="button" className="btn btn--ghost" style={{ borderRadius: 0 }} onClick={onSkip}>
             Empezar sin recorrido
           </button>
-          <button type="button" className="btn btn--primary btn--cut" style={{ height: 48, padding: "0 26px", fontSize: 15 }} onClick={onStartTour} autoFocus>
+          <button type="button" className="btn btn--primary btn--cut" onClick={onStartTour} autoFocus>
             Mostrame cómo funciona
           </button>
         </span>

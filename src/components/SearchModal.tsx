@@ -7,6 +7,7 @@ import type { Combo } from "@/lib/shortcuts";
 import { Kbd } from "./Kbd";
 import { TypeChips } from "./TypeChip";
 import { SearchIcon } from "./Icons";
+import { u } from "@/lib/scale";
 
 const MAX_ROWS = 8;
 
@@ -81,13 +82,21 @@ export function SearchModal({
   const leagueLabel = LEAGUES.find((l) => l.key === league)?.label.toUpperCase() ?? "";
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 40 }} role="dialog" aria-modal="true" aria-labelledby="search-title">
+    // Centrado con flex, no con translateX: la animación de entrada de .panel
+    // termina en `transform: none` y pisaba el translate (el modal quedaba
+    // corrido a la derecha). Arriba fijo para que no salte al filtrar.
+    <div
+      style={{ position: "absolute", inset: 0, zIndex: 40, display: "flex", justifyContent: "center", alignItems: "flex-start", padding: `${u(120)} ${u(40)} ${u(40)}` }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="search-title"
+    >
       <div className="veil" />
       <div
         className="panel panel--cut-28"
         style={{
-          position: "absolute", top: 120, left: "50%", transform: "translateX(-50%)", width: 720,
-          display: "flex", flexDirection: "column", padding: "22px 22px 16px",
+          width: u(720), maxWidth: "100%", maxHeight: "100%",
+          display: "flex", flexDirection: "column", padding: `${u(22)} ${u(22)} ${u(16)}`,
         }}
         onKeyDown={onKeyDown}
       >
@@ -108,9 +117,9 @@ export function SearchModal({
 
         <div
           style={{
-            display: "flex", alignItems: "center", gap: 14, height: 72, padding: "0 20px",
+            display: "flex", alignItems: "center", gap: 14, height: u(72), padding: `0 ${u(20)}`,
             background: "rgba(255,255,255,0.05)", boxShadow: "0 0 0 2px rgba(111,227,242,0.38)",
-            clipPath: "polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 12px)",
+            clipPath: `polygon(${u(12)} 0, 100% 0, 100% 100%, 0 100%, 0 ${u(12)})`,
           }}
         >
           <SearchIcon />
@@ -129,17 +138,17 @@ export function SearchModal({
               setCursor(0);
             }}
             style={{
-              flexGrow: 1, minWidth: 0, height: 40, border: 0, outline: "none", background: "transparent",
-              color: "#F2F3F5", fontSize: 23, fontWeight: 500, letterSpacing: "-0.015em",
+              flexGrow: 1, minWidth: 0, height: u(40), border: 0, outline: "none", background: "transparent",
+              color: "#F2F3F5", fontSize: "max(16px, calc(23 * var(--u)))", fontWeight: 500, letterSpacing: "-0.015em",
             }}
           />
         </div>
 
-        <span className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#A8B0BB", padding: "22px 4px 12px" }}>
+        <span className="label" style={{ fontSize: 11, letterSpacing: "0.16em", color: "#A8B0BB", padding: `${u(22)} 4px ${u(12)}` }}>
           {query.trim() ? "RESULTADOS" : `MÁS USADOS EN ${leagueLabel}`}
         </span>
 
-        <div ref={listRef} className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: MAX_ROWS * 66 + (MAX_ROWS - 1) * 4 }}>
+        <div ref={listRef} className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 4, minHeight: 0, flex: "0 1 auto", maxHeight: `calc(${MAX_ROWS} * ${u(66)} + ${MAX_ROWS - 1} * 4px)` }}>
           {results.length === 0 && (
             <span style={{ padding: "18px 14px", fontSize: 15, color: "#9CA6B2" }}>
               {hiddenMegas > 0

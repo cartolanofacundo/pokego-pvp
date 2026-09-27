@@ -163,7 +163,7 @@ export const IvInput = forwardRef<
           </span>
         )}
         {result.kind === "empty" && (
-          <span className="rk-note">Escribí todo junto, sin espaciar: ataque, defensa, PS y después el PC. Los separadores los ponemos nosotros.</span>
+          <span className="rk-note rk-iv-help">Escribí todo junto, sin espaciar: ataque, defensa, PS y después el PC. Los separadores los ponemos nosotros.</span>
         )}
         {result.kind === "reading" && <span className="rk-note">{result.message}</span>}
         {result.kind === "invalid" && (raw.length > 0 && submitted) && <span className="rk-error">{result.message}</span>}
