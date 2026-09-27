@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CombateApp } from "@/components/CombateApp";
+import { ToolMobileNotice } from "@/components/ToolMobileNotice";
 import { APP_NAME, SITE_URL } from "@/lib/site";
 
 const title = `Combate PvP en vivo: multiplicadores y turnos · ${APP_NAME}`;
@@ -13,5 +14,12 @@ export const metadata: Metadata = {
 };
 
 export default function CombatePage() {
-  return <CombateApp />;
+  return (
+    <>
+      <ToolMobileNotice section="combate" path="/combate/" />
+      <div className="tool-desktop">
+        <CombateApp />
+      </div>
+    </>
+  );
 }

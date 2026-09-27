@@ -80,10 +80,10 @@ export function LevelCostLine({ cost, small }: { cost: LevelCost; small?: boolea
 
 /** Costo de evolucionar hasta esta forma. */
 export function EvolveCostLine({ candy, evolved }: { candy: number | null; evolved: boolean }) {
-  if (!evolved) return <span className="rk-cost">—</span>;
-  if (candy === null) return <span className="rk-cost">Sin datos</span>;
+  if (!evolved) return <span className="rk-cost" title="No evoluciona desde el cargado">—</span>;
+  if (candy === null) return <span className="rk-cost" title="Sin datos de evolución">Sin datos</span>;
   return (
-    <span style={line} title={`${fmt(candy)} caramelos para evolucionar`}>
+    <span style={line} title={`Evolución: ${fmt(candy)} caramelos para evolucionar`}>
       <span style={item}>
         <CandyIcon />
         {fmt(candy)}
@@ -95,7 +95,7 @@ export function EvolveCostLine({ candy, evolved }: { candy: number | null; evolv
 /** Energía para la primera Megaevolución. */
 export function MegaEnergyLine({ energy }: { energy: number | null }) {
   return (
-    <span style={line} title={energy === null ? "Sin datos de energía" : `${fmt(energy)} de energía Mega`}>
+    <span style={line} title={energy === null ? "Energía Mega: sin datos" : `Energía Mega: ${fmt(energy)}`}>
       <span style={item}>
         <MegaIcon />
         {energy === null ? "—" : fmt(energy)}
@@ -106,9 +106,9 @@ export function MegaEnergyLine({ energy }: { energy: number | null }) {
 
 /** Tercer ataque: polvo y caramelos. */
 export function ThirdMoveLine({ cost, candyOnly }: { cost: ThirdMoveCost | null; candyOnly?: boolean }) {
-  if (!cost || (cost.candy === null && cost.dust === null)) return <span className="rk-cost">Sin datos</span>;
+  if (!cost || (cost.candy === null && cost.dust === null)) return <span className="rk-cost" title="Tercer ataque: sin datos">Sin datos</span>;
   return (
-    <span style={line} title={`${cost.dust === null ? "—" : fmtDust(cost.dust)} polvo · ${cost.candy === null ? "—" : fmt(cost.candy)} car`}>
+    <span style={line} title={`3er ataque: ${cost.dust === null ? "—" : fmtDust(cost.dust)} polvo · ${cost.candy === null ? "—" : fmt(cost.candy)} car`}>
       {!candyOnly && (
         <span style={item}>
           <DustIcon />

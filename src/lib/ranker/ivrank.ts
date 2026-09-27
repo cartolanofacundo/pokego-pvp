@@ -39,7 +39,7 @@ const cache = new Map<string, RankTable | null>();
 
 /**
  * Tabla de rangos de una especie para un tope de CP. Devuelve null si ninguna
- * combinación entra ni al nivel 1 (por ejemplo, Mewtwo en Little League).
+ * combinación entra ni al nivel 1 (por ejemplo, Mewtwo en Little Cup).
  * Se cachea por estadísticas base: una Shadow comparte tabla con su normal.
  */
 export function rankTable(base: BaseStats, cap: number, settings: RankSettings): RankTable | null {

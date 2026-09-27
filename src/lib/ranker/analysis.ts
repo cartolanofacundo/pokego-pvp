@@ -123,6 +123,19 @@ function cellFor(entry: BoxEntry, target: Target, league: RankerLeague, pvpokeKe
   };
 }
 
+/**
+ * true si `c` es mejor que `over` para el título de MEJOR o el mejor rango
+ * de un cargado: menor rango primero, después mejor puesto en PvPoke (sin
+ * puesto es el peor de todos) y por último mayor tope de CP.
+ */
+function betterCell(c: { row: RankRow | null; pvpoke: number | null; league: RankerLeague }, over: typeof c): boolean {
+  if (c.row!.rank !== over.row!.rank) return c.row!.rank < over.row!.rank;
+  const cPv = c.pvpoke ?? Infinity;
+  const overPv = over.pvpoke ?? Infinity;
+  if (cPv !== overPv) return cPv < overPv;
+  return c.league.cap > over.league.cap;
+}
+
 export interface TargetResult {
   target: Target;
   /** true en la forma que el usuario cargó (ni evolucionada ni Mega). */
@@ -155,15 +168,15 @@ export function analyzeEntry(entry: BoxEntry, settings: RankSettings): TargetRes
 
   // MEJOR: el rango más bajo de toda la grilla. Dos ligas distintas pueden
   // compartir el mismo número de rango (cada una compara contra sus propias
-  // 4.096 combinaciones, no entre sí); en ese empate gana la de mayor tope de
-  // CP, porque rendir igual de bien en una liga más grande pesa más.
+  // 4.096 combinaciones, no entre sí); en ese empate gana el mejor puesto en
+  // PvPoke (sin puesto cuenta como el peor) y, si también empatan ahí, la de
+  // mayor tope de CP, porque rendir igual de bien en una liga más grande pesa
+  // más.
   let best: Cell | null = null;
   for (const r of results) {
     for (const c of r.cells) {
       if (c.kind !== "rank" || !c.row) continue;
-      if (!best || c.row.rank < best.row!.rank || (c.row.rank === best.row!.rank && c.league.cap > best.league.cap)) {
-        best = c;
-      }
+      if (!best || betterCell(c, best)) best = c;
     }
   }
   if (best) best.best = true;
@@ -231,11 +244,14 @@ export function bestRankOf(entry: BoxEntry, settings: RankSettings, onlyLeague?:
     for (const league of leagues) {
       if (target.isMega !== league.mega) continue;
       const cell = cellFor(entry, target, league, league.key, settings);
-      if (
-        cell.kind === "rank" &&
-        cell.row &&
-        (!best || cell.row.rank < best.rank || (cell.row.rank === best.rank && league.cap > best.league.cap))
-      ) {
+      if (cell.kind !== "rank" || !cell.row) continue;
+      const better =
+        !best ||
+        cell.row.rank < best.rank ||
+        (cell.row.rank === best.rank &&
+          (cell.pvpoke ?? Infinity) < (best.pvpoke ?? Infinity)) ||
+        (cell.row.rank === best.rank && (cell.pvpoke ?? Infinity) === (best.pvpoke ?? Infinity) && league.cap > best.league.cap);
+      if (better) {
         best = { rank: cell.row.rank, league, species: target.species, pvpoke: cell.pvpoke };
       }
     }

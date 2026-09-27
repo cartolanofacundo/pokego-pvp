@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { getSpecies, searchSpecies, pvpokeRankForVariant, familyRootOf } from "./data";
-import { cpAt, levelsForCp } from "./cp";
-import { rankOf } from "./ivrank";
+import { cpAt, levelsForCp, formatLevel } from "./cp";
+import { rankOf, rankTable } from "./ivrank";
 import { formatRaw, allReadings, resolveEntry, normalizeRaw } from "./parse";
 import { levelCost, evolveCost, thirdMoveCost, costMultipliers, purifiedIvs } from "./costs";
 import { analyzeEntry, dexRows, targetsOf, bestRankOf, servesAnyLeague, servesLeague, type BoxEntry } from "./analysis";
 import { planCleanup } from "./cleanup";
 import { sanitizeEntry, DEFAULT_RANKER_SETTINGS } from "./box";
+import { podiumOf } from "./podium";
 
 const sp = (id: string) => getSpecies(id)!;
 const S50 = { maxLevel: 50, minIv: 0 };
@@ -316,5 +317,58 @@ describe("búsqueda de especies: sin Shadow ni Mega, especie anterior/siguiente"
     expect(searchSpecies("495")[0].id).toBe("snivy");
     expect(searchSpecies("charizard").some((s) => s.mega)).toBe(false);
     expect(searchSpecies("snivy").some((s) => s.shadow)).toBe(false);
+  });
+});
+
+describe("formatLevel usa coma decimal", () => {
+  it("nivel entero sin coma, nivel .5 con coma", () => {
+    expect(formatLevel(50)).toBe("50");
+    expect(formatLevel(12.5)).toBe("12,5");
+    expect(formatLevel(29.5)).toBe("29,5");
+  });
+});
+
+describe("podiumOf: #1, #2 y #3 son oro, plata y bronce", () => {
+  it("del #4 para abajo no hay metal", () => {
+    expect(podiumOf(1)).toBe(1);
+    expect(podiumOf(2)).toBe(2);
+    expect(podiumOf(3)).toBe(3);
+    expect(podiumOf(4)).toBeNull();
+    expect(podiumOf(101)).toBeNull();
+  });
+});
+
+describe("podio: los empates comparten metal (Swampert 0/15/12 y 0/15/13 en Great)", () => {
+  it("las dos son #2 (plata) y la siguiente combinación distinta es #4: no hay bronce", () => {
+    const swampert = sp("swampert");
+    const a = rankOf(swampert, { atk: 0, def: 15, sta: 12 }, 1500, S50)!;
+    const b = rankOf(swampert, { atk: 0, def: 15, sta: 13 }, 1500, S50)!;
+    expect(a.rank).toBe(2);
+    expect(b.rank).toBe(2);
+    expect(podiumOf(a.rank)).toBe(2);
+    // El rango de competencia salta la cantidad de empatadas: nadie queda en #3.
+    const table = rankTable(swampert, 1500, S50)!;
+    expect(table.rows.some((r) => r.rank === 3)).toBe(false);
+  });
+});
+
+describe("MEJOR y bestRankOf desempatan un doble #1 por el puesto en PvPoke", () => {
+  it("Mudkip 0/14/14: Little #1 (PvPoke #224) y Great #1 como Swampert (PvPoke #78) — gana Great", () => {
+    const mudkip = sp("mudkip");
+    const iv = { atk: 0, def: 14, sta: 14 };
+    const cp = cpAt(mudkip, iv, 15);
+    const e = entry("mudkip", iv.atk, iv.def, iv.sta, cp, { level: 15 });
+
+    const results = analyzeEntry(e, S50);
+    const little = results.find((r) => r.target.species.id === "mudkip")!.cells.find((c) => c.league.key === "little")!;
+    const great = results.find((r) => r.target.species.id === "swampert")!.cells.find((c) => c.league.key === "great")!;
+    expect(little.row!.rank).toBe(1);
+    expect(great.row!.rank).toBe(1);
+    expect(little.best).toBe(false);
+    expect(great.best).toBe(true);
+
+    const best = bestRankOf(e, S50)!;
+    expect(best.species.id).toBe("swampert");
+    expect(best.pvpoke).toBe(78);
   });
 });

@@ -64,7 +64,7 @@ export interface RankerLeague {
 }
 
 export const RANKER_LEAGUES: RankerLeague[] = [
-  { key: "little", label: "Little League", short: "Little", cap: 500, mega: false },
+  { key: "little", label: "Little Cup", short: "Little", cap: 500, mega: false },
   { key: "great", label: "Great League", short: "Great", cap: 1500, mega: false },
   { key: "ultra", label: "Ultra League", short: "Ultra", cap: 2500, mega: false },
   { key: "master", label: "Master League", short: "Master", cap: Infinity, mega: false },

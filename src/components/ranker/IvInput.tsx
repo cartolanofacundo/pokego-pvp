@@ -49,8 +49,12 @@ export const IvInput = forwardRef<
     onSubmit: (s: IvSubmit) => void;
     onCancel?: () => void;
     onNextSpecies?: (dir: 1 | -1) => void;
+    /** Vista previa en vivo: se llama con la lectura válida en cada tecla, o
+     *  con null en cuanto deja de haber una (vacío, ambigua, inválida o falta
+     *  el CP). Solo tiene sentido al cargar un nuevo Pokémon, no al editar. */
+    onPreview?: (s: IvSubmit | null) => void;
   }
->(function IvInput({ species, settings, initial, onSubmit, onCancel, onNextSpecies }, ref) {
+>(function IvInput({ species, settings, initial, onSubmit, onCancel, onNextSpecies, onPreview }, ref) {
   // Todo con comas (nunca la raya del formato mostrado): greedy() y
   // allReadings() solo entienden dígitos y comas como separador explícito.
   const initialRaw = initial ? `${initial.atk},${initial.def},${initial.sta},${initial.cp}` : "";
@@ -71,6 +75,11 @@ export const IvInput = forwardRef<
   }, [initial?.atk, initial?.def, initial?.sta, initial?.cp, species.id]);
 
   const result = useMemo(() => resolveEntry(raw, species, settings), [raw, species, settings]);
+
+  useEffect(() => {
+    onPreview?.(result.kind === "ok" ? { reading: result.reading, variant, lucky } : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, variant, lucky]);
 
   // Vista previa de purificación: solo tiene sentido viniendo de un Oscuro.
   const cameFromShadow = initial?.variant === "shadow";
@@ -126,11 +135,18 @@ export const IvInput = forwardRef<
     }
   };
 
-  const displayRaw = result.kind === "ok" ? `${result.reading.atk},${result.reading.def},${result.reading.sta}–${result.reading.cp}` : formatRaw(raw);
+  // Con dos lecturas posibles, mostrar una sola formateada (con comas y guion)
+  // parece elegirla por el usuario: mientras haya ambigüedad se ven los
+  // dígitos tal cual se tipearon, y el anillo ámbar avisa que hace falta
+  // elegir una abajo.
+  const displayRaw =
+    result.kind === "ok" ? `${result.reading.atk},${result.reading.def},${result.reading.sta}–${result.reading.cp}`
+    : result.kind === "ambiguous" ? raw
+    : formatRaw(raw);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <label className="rk-field rk-field--iv">
+      <label className={`rk-field rk-field--iv ${result.kind === "ambiguous" ? "rk-field--ambiguous" : ""}`}>
         <span className="sr-only">IV de ataque, defensa y PS, y CP</span>
         <input
           ref={inputRef}

@@ -45,7 +45,7 @@ export function formatMult(mult: number): string {
   // 2.5600000000000005 -> "2.56", 1.6 -> "1.6", 1 -> "1", 0.625 -> "0.63",
   // 0.390625 -> "0.39", 0.244140625 -> "0.24".
   const rounded = Math.round(mult * 100) / 100;
-  return `×${rounded.toFixed(2).replace(/\.?0+$/, "")}`;
+  return `×${rounded.toFixed(2).replace(/\.?0+$/, "").replace(".", ",")}`;
 }
 
 export interface MoveScore {

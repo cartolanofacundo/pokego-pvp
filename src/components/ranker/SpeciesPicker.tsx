@@ -41,7 +41,7 @@ export const SpeciesPicker = forwardRef<SpeciesPickerHandle, { onPick: (s: Speci
         <input
           ref={inputRef}
           value={query}
-          placeholder="Nombre o número de pokédex…"
+          placeholder="Nombre o número"
           autoComplete="off"
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 120)}

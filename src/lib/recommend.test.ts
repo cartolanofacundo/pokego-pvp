@@ -13,13 +13,13 @@ describe("effectTier", () => {
 });
 
 describe("formatMult", () => {
-  it("formatea los 5 multiplicadores, incluso con ruido de punto flotante (1.6*1.6)", () => {
-    expect(formatMult(1.6 * 1.6)).toBe("×2.56"); // 2.5600000000000005 en JS
-    expect(formatMult(1.6)).toBe("×1.6");
+  it("formatea los 5 multiplicadores con coma decimal, incluso con ruido de punto flotante (1.6*1.6)", () => {
+    expect(formatMult(1.6 * 1.6)).toBe("×2,56"); // 2.5600000000000005 en JS
+    expect(formatMult(1.6)).toBe("×1,6");
     expect(formatMult(1)).toBe("×1");
-    expect(formatMult(0.625)).toBe("×0.63");
-    expect(formatMult(0.390625)).toBe("×0.39");
-    expect(formatMult(0.625 * 0.390625)).toBe("×0.24");
+    expect(formatMult(0.625)).toBe("×0,63");
+    expect(formatMult(0.390625)).toBe("×0,39");
+    expect(formatMult(0.625 * 0.390625)).toBe("×0,24");
   });
 });
 

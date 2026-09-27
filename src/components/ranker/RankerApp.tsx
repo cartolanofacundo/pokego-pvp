@@ -5,6 +5,8 @@ import { Viewport } from "@/components/Viewport";
 import { u } from "@/lib/scale";
 import { Brand } from "@/components/NavLinks";
 import { bestRankOf, type BoxEntry } from "@/lib/ranker/analysis";
+import { podiumOf, PODIUM_CLASS } from "@/lib/ranker/podium";
+import { Medal } from "./Medal";
 import { SPECIES, familyRootOf, getSpecies, type RankerLeagueKey, type Species } from "@/lib/ranker/data";
 import { fmt } from "@/lib/ranker/format";
 import type { IvSubmit } from "./IvInput";
@@ -44,6 +46,7 @@ export function RankerApp() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dexLeague, setDexLeague] = useState<RankerLeagueKey>("great");
   const [dexMode, setDexMode] = useState<DexMode>("utiles");
+  const [preview, setPreview] = useState<IvSubmit | null>(null);
   const [pendingImport, setPendingImport] = useState<{ entries: BoxEntry[]; skipped: number; name: string } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [importedOk, setImportedOk] = useState<number | null>(null);
@@ -59,7 +62,11 @@ export function RankerApp() {
     setEntries(box);
     setSettings(loadSettings());
     const last = loadJSON<string | null>(LAST_SPECIES_KEY, null);
-    if (last && getSpecies(last)) setSpeciesId(last);
+    if (last && getSpecies(last)) {
+      setSpeciesId(last);
+      const existing = box.filter((e) => e.speciesId === last).sort((a, b) => b.addedAt - a.addedAt)[0];
+      if (existing) setSelectedId(existing.id);
+    }
     setReady(true);
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -90,14 +97,34 @@ export function RankerApp() {
     [entries, familyRoot]
   );
   const editingEntry = editingId ? entries.find((e) => e.id === editingId) ?? null : null;
-  const selected = entries.find((e) => e.id === selectedId) ?? familyEntries[0] ?? null;
+  // El detalle sigue a lo que estás cargando: nunca muestra otra especie que
+  // la elegida. Sin un cargado de esa especie exacta, no hay fallback a la
+  // familia (eso era lo que dejaba ver, por ejemplo, un Swampert viejo al
+  // elegir Mudkip): se ve el estado vacío hasta que haya uno.
+  const selected = entries.find((e) => e.id === selectedId) ?? null;
+  // Vista previa "SIN GUARDAR": mientras se tipea una lectura válida para un
+  // cargado nuevo (no al editar), el detalle la muestra al instante.
+  const previewEntry: BoxEntry | null =
+    species && !editingEntry && preview
+      ? { id: "__preview__", speciesId: species.id, ...preview.reading, variant: preview.variant, lucky: preview.lucky, addedAt: 0 }
+      : null;
+  const displayEntry = previewEntry ?? selected;
+
+  const selectExisting = useCallback(
+    (id: string, box: BoxEntry[]) => {
+      const existing = box.filter((e) => e.speciesId === id).sort((a, b) => b.addedAt - a.addedAt)[0];
+      setSelectedId(existing?.id ?? null);
+    },
+    []
+  );
 
   const chooseSpecies = useCallback((s: Species) => {
     setSpeciesId(s.id);
-    setSelectedId(null);
+    selectExisting(s.id, entries);
     setEditingId(null);
+    setPreview(null);
     setTimeout(() => ivRef.current?.focus(), 0);
-  }, []);
+  }, [entries, selectExisting]);
 
   const stepSpecies = useCallback(
     (dir: 1 | -1) => {
@@ -105,11 +132,12 @@ export function RankerApp() {
       const next = SPECIES[Math.min(SPECIES.length - 1, Math.max(0, idx + dir))];
       if (next && !next.shadow && !next.mega) {
         setSpeciesId(next.id);
-        setSelectedId(null);
+        selectExisting(next.id, entries);
         setEditingId(null);
+        setPreview(null);
       }
     },
-    [speciesId]
+    [speciesId, entries, selectExisting]
   );
 
   const addEntry = (s: IvSubmit) => {
@@ -118,6 +146,7 @@ export function RankerApp() {
     const e: BoxEntry = { id: newId(), speciesId: species.id, atk: r.atk, def: r.def, sta: r.sta, cp: r.cp, level: r.level, variant, lucky, addedAt: Date.now() };
     setEntries((xs) => [...xs, e]);
     setSelectedId(e.id);
+    setPreview(null);
   };
 
   const saveEdit = (s: IvSubmit) => {
@@ -143,6 +172,7 @@ export function RankerApp() {
     setSpeciesId(e.speciesId);
     setSelectedId(e.id);
     setEditingId(null);
+    setPreview(null);
     setView("cargar");
   };
 
@@ -198,7 +228,7 @@ export function RankerApp() {
 
   return (
     <Viewport scale={false}>
-      <main style={{ position: "relative", width: "100%", height: "var(--h)", display: "flex", flexDirection: "column", overflow: "hidden", background: "radial-gradient(1000px 600px at 20% 0%, rgba(92,152,236,0.10), rgba(92,152,236,0) 70%), #080A0D" }}>
+      <main style={{ position: "relative", width: "100%", minHeight: "var(--h)", display: "flex", flexDirection: "column", background: "radial-gradient(1000px 600px at 20% 0%, rgba(92,152,236,0.10), rgba(92,152,236,0) 70%), #080A0D" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: u(60), padding: `0 ${u(48)}`, flexShrink: 0, boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.08)" }}>
           <Brand current="rankeador" />
           <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -321,12 +351,14 @@ export function RankerApp() {
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 28, padding: `0 ${u(48)} 24px`, flexGrow: 1, minHeight: 0 }}>
+        <div style={{ display: "flex", gap: 28, padding: `0 ${u(48)} 24px`, flexGrow: 1, alignItems: "flex-start" }}>
           {view === "cargar" ? (
             <>
-              {/* La columna scrollea entera si los tres paneles no entran (ventanas
-                  bajas): así ninguno se aplasta y "Cargados" conserva 200 px. */}
-              <div className="scroll-list rk-left" style={{ display: "flex", flexDirection: "column", gap: 14, width: "clamp(360px, 27vw, 500px)", flexShrink: 0, minHeight: 0, overflowY: "auto" }}>
+              {/* Columna de altura natural: si los tres paneles no entran en la
+                  ventana, la página entera scrollea (nunca por dentro de la
+                  columna). A 1440 o menos se oculta la ayuda del campo IV
+                  (container query por ancho, ver .rk-left en globals.css). */}
+              <div className="rk-left" style={{ display: "flex", flexDirection: "column", gap: 14, width: "clamp(360px, 27vw, 500px)", flexShrink: 0 }}>
                 <div className="rk-panel" style={{ gap: 14, overflow: "visible", clipPath: "none", flexShrink: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <span className="label" style={{ fontSize: 11 }}>Especie</span>
@@ -342,7 +374,7 @@ export function RankerApp() {
                       <span className="label" style={{ fontSize: 11 }}>IV y PC</span>
                       <span className="rk-cost" style={{ fontSize: 11 }}>ATQ · DEF · PS — PC</span>
                     </div>
-                    <IvInput ref={ivRef} species={species} settings={settings} onSubmit={addEntry} onNextSpecies={stepSpecies} />
+                    <IvInput ref={ivRef} species={species} settings={settings} onSubmit={addEntry} onNextSpecies={stepSpecies} onPreview={setPreview} />
                   </div>
                 )}
 
@@ -363,11 +395,11 @@ export function RankerApp() {
                 )}
 
                 {species && (
-                  <div className="rk-panel" style={{ gap: 10, flex: "1 0 200px", minHeight: 200 }}>
+                  <div className="rk-panel" style={{ gap: 10, flexShrink: 0 }}>
                     <span className="label" style={{ fontSize: 11 }}>
                       CARGADOS DE ESTA LÍNEA · {familyEntries.length}
                     </span>
-                    <div className="scroll-list" style={{ display: "flex", flexDirection: "column", gap: 2, flex: "1 1 auto", minHeight: 0 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       {familyEntries.length === 0 && <span className="rk-note">Todavía ninguno. Tipeá los IV y el CP y apretá Enter.</span>}
                       {familyEntries.map((e) => (
                         <EntryRow
@@ -375,7 +407,7 @@ export function RankerApp() {
                           entry={e}
                           settings={settings}
                           current={selected?.id === e.id}
-                          onSelect={() => { setSelectedId(e.id); setEditingId(null); }}
+                          onSelect={() => { setSelectedId(e.id); setEditingId(null); setPreview(null); }}
                           onEdit={() => setEditingId(e.id)}
                           onDelete={() => deleteEntry(e.id)}
                         />
@@ -385,11 +417,17 @@ export function RankerApp() {
                 )}
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0, minHeight: 0 }}>
-                {selected ? (
-                  <EntryDetail entry={selected} settings={settings} onEdit={() => setEditingId(selected.id)} onDelete={() => deleteEntry(selected.id)} />
+              <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0, alignSelf: "stretch" }}>
+                {displayEntry ? (
+                  <EntryDetail
+                    entry={displayEntry}
+                    settings={settings}
+                    unsaved={previewEntry !== null}
+                    onEdit={() => setEditingId(displayEntry.id)}
+                    onDelete={() => deleteEntry(displayEntry.id)}
+                  />
                 ) : (
-                  <div className="rk-panel" style={{ flexGrow: 1, justifyContent: "center", alignItems: "center", gap: 12 }}>
+                  <div className="rk-panel" style={{ minHeight: 420, justifyContent: "center", alignItems: "center", gap: 12 }}>
                     <span className="display" style={{ fontSize: 26, fontWeight: 800 }}>
                       {species ? `Cargá tu primer ${species.name}` : "Elegí una especie"}
                     </span>
@@ -468,12 +506,18 @@ function EntryRow({
           <span className="rk-num" style={{ fontSize: 13, fontWeight: 600, color: "#DCE1E7", whiteSpace: "nowrap" }}>{entry.atk} / {entry.def} / {entry.sta}</span>
         </span>
         <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
-          {best && (
-            <span className={`rk-chip ${best.rank <= 100 ? "rk-chip--good" : ""}`} style={{ height: 25 }}>
-              <span className="rk-rank" style={{ fontSize: 16, color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>#{fmt(best.rank)}</span>
-              <span className="rk-cost" style={{ fontSize: 10, textTransform: "uppercase", color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>{best.league.short}</span>
-            </span>
-          )}
+          {best && (() => {
+            const tier = podiumOf(best.rank);
+            const cls = tier ? PODIUM_CLASS[tier] : null;
+            const textColor = cls ? `var(--${cls}-text)` : best.rank <= 100 ? "#86EFBC" : "#9CA6B2";
+            return (
+              <span className={`rk-chip ${cls ? `rk-podium--${cls}` : best.rank <= 100 ? "rk-chip--good" : ""}`} style={{ height: 25, gap: 5 }}>
+                {tier && <Medal tier={tier} size={15} />}
+                <span className="rk-rank" style={{ fontSize: 16, color: textColor }}>#{fmt(best.rank)}</span>
+                <span className="rk-cost" style={{ fontSize: 10, textTransform: "uppercase", color: textColor }}>{best.league.short}</span>
+              </span>
+            );
+          })()}
           {best?.pvpoke && (
             <span className="rk-chip" style={{ height: 25 }}>
               <span className="rk-cost" style={{ fontSize: 9.5 }}>PVP</span>

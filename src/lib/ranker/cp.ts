@@ -49,5 +49,5 @@ export function levelsForCp(base: BaseStats, iv: Ivs, cp: number): number[] {
 }
 
 export function formatLevel(level: number): string {
-  return Number.isInteger(level) ? String(level) : level.toFixed(1);
+  return Number.isInteger(level) ? String(level) : level.toFixed(1).replace(".", ",");
 }

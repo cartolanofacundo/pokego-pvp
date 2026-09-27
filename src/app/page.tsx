@@ -249,7 +249,7 @@ export default function Home() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={withBasePath("/images/landing/combate.webp")}
-                alt={`Pantalla de combate de ${APP_NAME}: un rival con un ataque marcado en rojo por ser muy efectivo, el equipo propio abajo con sus ataques y la banca al costado.`}
+                alt="Pantalla de combate de PokéGO PVP: Rillaboom rival arriba con Drum Beating marcado ×1,6 en rojo; Lapras propio abajo con sus ataques y la banca a la derecha."
                 width={1440}
                 height={810}
                 loading="lazy"
@@ -338,7 +338,7 @@ export default function Home() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={withBasePath("/images/landing/rankeador.webp")}
-                alt={`Rankeador de ${APP_NAME}: un Mudkip 1/14/12 con una fila por forma (Mudkip, Marshtomp, Swampert, Mega Swampert) y una columna por liga; cada celda muestra el rango IV (en verde si es 100 o mejor) y el puesto en PvPoke de esa forma en esa liga.`}
+                alt="Rankeador de PokéGO PVP: un Swampert 1/10/14 con una fila por forma y una columna por liga; cada celda muestra el rango IV y el puesto en PvPoke."
                 width={1440}
                 height={810}
                 loading="lazy"

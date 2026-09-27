@@ -9,6 +9,8 @@ import { fmt } from "@/lib/ranker/format";
 import type { RankerSettings } from "@/lib/ranker/box";
 import { withBasePath } from "@/lib/basePath";
 import { EvolveCostLine, LevelCostLine, ThirdMoveLine } from "./CostIcons";
+import { podiumOf, PODIUM_CLASS } from "@/lib/ranker/podium";
+import { Medal } from "./Medal";
 
 export type DexMode = "utiles" | "caja";
 const dexNumber = (dex: number) => `#${String(dex).padStart(4, "0")}`;
@@ -131,7 +133,7 @@ export function DexView({
   };
 
   return (
-    <div className="rk-panel" style={{ flexGrow: 1, minWidth: 0, minHeight: 0, gap: 16 }}>
+    <div className="rk-panel" style={{ flexGrow: 1, minWidth: 0, gap: 16, alignSelf: "flex-start" }}>
       <span className="panel__edge" style={{ left: 18 }} />
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexShrink: 0, boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.10)" }}>
         <span style={{ display: "flex", gap: 26 }}>
@@ -225,7 +227,7 @@ export function DexView({
             </span>
           </span>
           <span style={{ display: "flex", gap: 10 }}>
-            <button type="button" className="btn" style={{ height: 40 }} onClick={confirmDelete} disabled={plan.toDelete.length === 0}>
+            <button type="button" className="btn btn--danger" style={{ height: 40 }} onClick={confirmDelete} disabled={plan.toDelete.length === 0}>
               <TrashIcon color="#1A0B0B" />
               Borrar {plan.toDelete.length}
             </button>
@@ -259,7 +261,10 @@ export function DexView({
         </div>
       )}
 
-      <div ref={scrollRef} className="scroll-list" style={{ minHeight: 0, flexGrow: 1, overflowX: wide || mode === "caja" ? "hidden" : "auto" }}>
+      {/* Sin scroll vertical propio: la tabla y la grilla crecen con su
+          contenido y es la página la que scrollea. El scroll horizontal de
+          la tabla densa (cuando no entra ni comprimida) se mantiene. */}
+      <div ref={scrollRef} style={{ overflowX: wide || mode === "caja" ? "hidden" : "auto" }}>
         {mode === "utiles" ? (
           rows.length === 0 ? (
             <p className="rk-note" style={{ padding: "12px 4px" }}>Ningún Pokémon de tu caja tiene rango 100 o mejor en {leagueLabel}.</p>
@@ -325,7 +330,7 @@ function WideDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof dex
       <colgroup>{cols.split(" ").map((w, i) => <col key={i} style={{ width: w }} />)}</colgroup>
       <thead>
         <tr>
-          <th>Puesto PvPoke</th><th>Pokémon</th><th>Rango IV</th><th>IV</th><th>Rinde en</th><th>Nivel actual</th>
+          <th>PvPoke</th><th>Pokémon</th><th>Rango IV</th><th>IV</th><th>Rinde en</th><th>Nivel</th>
           <th>Evolución</th><th>Costo para subir</th>{showThird && <th>3er ataque</th>}<th />
         </tr>
       </thead>
@@ -333,8 +338,11 @@ function WideDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof dex
         {rows.map((r) => {
           const from = getSpecies(r.entry.speciesId)!;
           const evolved = r.target.path.length > 1;
+          const tier = podiumOf(r.cell.row!.rank);
+          const cls = tier ? PODIUM_CLASS[tier] : null;
+          const rankColor = cls ? `var(--${cls}-text)` : "var(--green)";
           return (
-            <tr key={`${r.entry.id}-${r.target.species.id}`}>
+            <tr key={`${r.entry.id}-${r.target.species.id}`} className={cls ? `rk-podium-row--${cls}` : ""}>
               <td><span className="rk-pill"><span className="rk-rank" style={{ fontSize: 28 }}>{r.cell.pvpoke ? `#${fmt(r.cell.pvpoke)}` : "—"}</span></span></td>
               <td>
                 <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
@@ -346,7 +354,7 @@ function WideDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof dex
                   </span>
                 </span>
               </td>
-              <td><span style={{ display: "flex", alignItems: "baseline", gap: 8 }}><span className="rk-rank rk-rank--good" style={{ fontSize: 28 }}>#{r.cell.row!.rank}</span><span className="rk-cost" style={{ fontSize: 12.5 }}>{r.cell.row!.pct.toFixed(1).replace(".", ",")} %</span></span></td>
+              <td><span style={{ display: "flex", alignItems: "baseline", gap: 8 }}>{tier && <Medal tier={tier} size={22} />}<span className="rk-rank" style={{ fontSize: 28, color: rankColor }}>#{r.cell.row!.rank}</span><span className="rk-cost" style={{ fontSize: 12.5 }}>{r.cell.row!.pct.toFixed(1).replace(".", ",")} %</span></span></td>
               <td className="rk-num" style={{ fontSize: 15, fontWeight: 600 }}>{r.entry.atk} / {r.entry.def} / {r.entry.sta}</td>
               <td style={{ fontSize: 14, color: "#DCE1E7" }}>{fmt(r.cell.row!.cp)} PC · nv {formatLevel(r.cell.row!.level)}</td>
               <td className="rk-num" style={{ fontSize: 14, color: "#DCE1E7" }}>{formatLevel(r.entry.level)}</td>
@@ -379,8 +387,11 @@ function DenseDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof de
         {rows.map((r) => {
           const from = getSpecies(r.entry.speciesId)!;
           const evolved = r.target.path.length > 1;
+          const tier = podiumOf(r.cell.row!.rank);
+          const cls = tier ? PODIUM_CLASS[tier] : null;
+          const rankColor = cls ? `var(--${cls}-text)` : "var(--green)";
           return (
-            <tr key={`${r.entry.id}-${r.target.species.id}`} style={{ height: 46 }}>
+            <tr key={`${r.entry.id}-${r.target.species.id}`} className={cls ? `rk-podium-row--${cls}` : ""} style={{ height: 46 }}>
               <td><span className="rk-pill" style={{ height: 32, minWidth: 58 }}><span className="rk-rank" style={{ fontSize: 22 }}>{r.cell.pvpoke ? `#${fmt(r.cell.pvpoke)}` : "—"}</span></span></td>
               <td>
                 <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
@@ -396,7 +407,7 @@ function DenseDexTable({ rows, showThird, onOpen }: { rows: ReturnType<typeof de
                   </span>
                 </span>
               </td>
-              <td><span style={{ display: "flex", alignItems: "baseline", gap: 6 }}><span className="rk-rank rk-rank--good" style={{ fontSize: 22 }}>#{r.cell.row!.rank}</span><span className="rk-cost" style={{ fontSize: 11 }}>{r.cell.row!.pct.toFixed(1).replace(".", ",")} %</span></span></td>
+              <td><span style={{ display: "flex", alignItems: "baseline", gap: 5 }}>{tier && <Medal tier={tier} size={18} />}<span className="rk-rank" style={{ fontSize: 22, color: rankColor }}>#{r.cell.row!.rank}</span><span className="rk-cost" style={{ fontSize: 11 }}>{r.cell.row!.pct.toFixed(1).replace(".", ",")} %</span></span></td>
               <td className="rk-num" style={{ fontSize: 13.5, fontWeight: 600 }}>{r.entry.atk}/{r.entry.def}/{r.entry.sta}</td>
               <td style={{ fontSize: 12.5, color: "#DCE1E7" }}>{fmt(r.cell.row!.cp)} PC · nv {formatLevel(r.cell.row!.level)}</td>
               <td className="rk-num" style={{ fontSize: 12.5, color: "#DCE1E7" }}>{formatLevel(r.entry.level)} → {formatLevel(r.cell.row!.level)}</td>
@@ -432,6 +443,9 @@ function BoxCard({
 }) {
   if (!species) return null;
   const actionStyle: React.CSSProperties = { width: 26, height: 26, border: 0, borderRadius: 7, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
+  const tier = best ? podiumOf(best.rank) : null;
+  const cls = tier ? PODIUM_CLASS[tier] : null;
+  const rankColor = cls ? `var(--${cls}-text)` : best && best.rank <= 100 ? "#86EFBC" : "#9CA6B2";
   // Tres columnas: sprite | texto | acciones. Las acciones tienen su propia
   // columna (apiladas arriba a la derecha), así nunca tapan el nombre.
   return (
@@ -441,7 +455,7 @@ function BoxCard({
           {cleanupMark === "keep" ? "SE QUEDA" : "SE BORRA"}
         </span>
       )}
-      <div className={`rk-card ${best && best.rank <= 100 ? "rk-card--good" : ""} ${cleanupMark === "drop" ? "rk-card--dimmed" : ""}`}>
+      <div className={`rk-card ${cls ? `rk-podium--${cls}` : best && best.rank <= 100 ? "rk-card--good" : ""} ${cleanupMark === "drop" ? "rk-card--dimmed" : ""}`}>
         <span style={{ width: 96, height: 96, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="rk-sprite" src={withBasePath(`/sprites/pixel/${species.id}.png`)} alt="" style={{ width: 112, height: 112, margin: -8 }} />
@@ -460,8 +474,9 @@ function BoxCard({
               <span className="label" style={{ fontSize: 9.5 }}>Rango IV</span>
               {best ? (
                 <span style={{ display: "flex", alignItems: "baseline", columnGap: 6, flexWrap: "wrap" }}>
-                  <span className={`rk-rank ${best.rank <= 100 ? "rk-rank--good" : ""}`} style={{ fontSize: 22 }}>#{fmt(best.rank)}</span>
-                  <span className="rk-cost" style={{ fontSize: 10, textTransform: "uppercase", color: best.rank <= 100 ? "#86EFBC" : "#9CA6B2" }}>{best.league.short}</span>
+                  {tier && <Medal tier={tier} size={18} />}
+                  <span className="rk-rank" style={{ fontSize: 22, color: rankColor }}>#{fmt(best.rank)}</span>
+                  <span className="rk-cost" style={{ fontSize: 10, textTransform: "uppercase", color: rankColor }}>{best.league.short}</span>
                 </span>
               ) : (
                 <span className="rk-cost" style={{ fontSize: 10.5 }}>NO ENTRA</span>

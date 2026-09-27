@@ -58,9 +58,11 @@ export function Rail({
       </div>
 
       {isRival && (
+        // A la derecha de la marca en L de la esquina (Track.tsx): la marca
+        // ocupa u(22) desde el borde, así que con este padding no se pisan.
         <span
           className="mono"
-          style={{ fontSize: 10, lineHeight: 1.6, letterSpacing: "0.04em", color: "#8A93A0", marginTop: "auto" }}
+          style={{ fontSize: 10, lineHeight: 1.6, letterSpacing: "0.04em", color: "#8A93A0", marginTop: "auto", paddingLeft: u(32) }}
         >
           DATOS PVPOKE
           <br />

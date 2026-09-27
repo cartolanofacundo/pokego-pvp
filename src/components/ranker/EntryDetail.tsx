@@ -6,9 +6,11 @@ import { getSpecies } from "@/lib/ranker/data";
 import { formatLevel } from "@/lib/ranker/cp";
 import { fmt } from "@/lib/ranker/format";
 import type { RankerSettings } from "@/lib/ranker/box";
+import { podiumOf, PODIUM_CLASS } from "@/lib/ranker/podium";
 import { withBasePath } from "@/lib/basePath";
 import { TypeChips } from "@/components/TypeChip";
 import { EvolveCostLine, LevelCostLine, MegaEnergyLine, ThirdMoveLine } from "./CostIcons";
+import { Medal } from "./Medal";
 
 const CAP_LABEL: Record<string, string> = { little: "500", great: "1.500", ultra: "2.500", master: "sin tope" };
 const VARIANT_LABEL: Record<string, string> = { normal: "normal", shadow: "oscuro", purified: "purificado" };
@@ -17,16 +19,23 @@ const VARIANT_LABEL: Record<string, string> = { normal: "normal", shadow: "oscur
  * Detalle de un Pokémon cargado: una fila por forma a la que puede llegar
  * (él mismo, cada evolución, cada Mega) y una columna por tope de CP. Cada
  * celda da el rango de IV y el puesto en PvPoke al mismo tamaño, el PC y el
- * nivel donde rinde, y lo que cuesta subirlo.
+ * nivel donde rinde, y lo que cuesta subirlo. Los rangos #1, #2 y #3 van con
+ * oro, plata y bronce en lugar del verde (ver .rk-podium--* en globals.css).
+ *
+ * `unsaved`: es la vista previa de un cargado que todavía no se guardó (se
+ * está tipeando en el campo de arriba). Muestra "SIN GUARDAR" en lugar de
+ * Editar/Quitar, porque todavía no hay nada que editar ni quitar.
  */
 export function EntryDetail({
   entry,
   settings,
+  unsaved = false,
   onEdit,
   onDelete,
 }: {
   entry: BoxEntry;
   settings: RankerSettings;
+  unsaved?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -36,11 +45,12 @@ export function EntryDetail({
   // Costos (PC y nivel donde rinde, polvo, caramelos, energía Mega, tercer
   // ataque) en `.rk-costs--*`: el ajuste Costos los muestra, los oculta o
   // ("auto") los oculta solo cuando las celdas quedan angostas (container
-  // queries en globals.css).
+  // queries en globals.css). Sin scroll interno: el panel crece con su
+  // contenido y es la página la que scrollea.
   return (
-    <div className={`rk-panel rk-detail rk-detail--costs-${settings.costs}`} style={{ flexGrow: 1, minWidth: 0, minHeight: 0, gap: 14 }}>
+    <div className={`rk-panel rk-detail rk-detail--costs-${settings.costs}`} style={{ minWidth: 0, gap: 14, alignSelf: "flex-start" }}>
       <span className="panel__edge" style={{ left: 18 }} />
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexShrink: 0, flexWrap: "wrap", gap: 10 }}>
         <span style={{ display: "flex", alignItems: "baseline", gap: 18, minWidth: 0 }}>
           <span className="display" style={{ fontSize: 34, fontWeight: 800, letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>{species.name}</span>
           <span className="rk-num" style={{ fontSize: 24, fontWeight: 600, whiteSpace: "nowrap" }}>
@@ -51,18 +61,24 @@ export function EntryDetail({
             {entry.lucky ? " · suertudo" : ""}
           </span>
         </span>
-        <span style={{ display: "flex", gap: 10, flexShrink: 0 }}>
-          <button type="button" className="btn" style={{ height: 40, fontSize: 14 }} onClick={onEdit}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 12h2.6L11.8 4.8 9.2 2.2 2 9.4V12z" stroke="#F2F3F5" strokeWidth={1.4} strokeLinejoin="round" /></svg>
-            Editar
-          </button>
-          <button type="button" className="btn btn--ghost" style={{ height: 40, fontSize: 14 }} onClick={onDelete}>
-            Quitar
-          </button>
-        </span>
+        {unsaved ? (
+          <span className="rk-tag" style={{ height: 26, padding: "0 10px", background: "rgba(248,192,102,0.16)", color: "var(--amber-text)", flexShrink: 0 }}>
+            SIN GUARDAR · Enter para cargar
+          </span>
+        ) : (
+          <span style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+            <button type="button" className="btn" style={{ height: 40, fontSize: 14 }} onClick={onEdit}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 12h2.6L11.8 4.8 9.2 2.2 2 9.4V12z" stroke="#F2F3F5" strokeWidth={1.4} strokeLinejoin="round" /></svg>
+              Editar
+            </button>
+            <button type="button" className="btn btn--ghost" style={{ height: 40, fontSize: 14 }} onClick={onDelete}>
+              Quitar
+            </button>
+          </span>
+        )}
       </div>
 
-      <div className="scroll-list" style={{ minHeight: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(150px, 240px) repeat(4, minmax(0, 1fr))", gap: 8, position: "sticky", top: 0, zIndex: 1, background: "#161a20", padding: "6px 0" }}>
           <span className="label" style={{ fontSize: 10.5, padding: "0 0 0 4px" }}>Forma</span>
           {results[0]?.cells.map((c) => (
@@ -104,13 +120,23 @@ export function EntryDetail({
                 );
               }
               const good = c.row.rank <= 100;
+              const tier = podiumOf(c.row.rank);
+              const cls = tier ? PODIUM_CLASS[tier] : null;
+              const rankColor = cls ? `var(--${cls}-text)` : good ? "#86EFBC" : "#9CA6B2";
               return (
-                <div key={c.league.key} className={`rk-cell ${good ? "rk-cell--good" : ""} ${c.best ? "rk-cell--best" : ""}`} style={{ position: "relative" }}>
-                  {c.best && <span className="rk-tag rk-tag--mejor">MEJOR</span>}
+                <div
+                  key={c.league.key}
+                  className={`rk-cell ${cls ? `rk-podium--${cls}` : good ? "rk-cell--good" : ""} ${c.best ? "rk-cell--best" : ""}`}
+                  style={{ position: "relative" }}
+                >
+                  {c.best && <span className={`rk-tag rk-tag--mejor ${cls ? "rk-tag--podium" : ""}`}>MEJOR</span>}
                   <div className="rk-cell__nums">
                     <div className="rk-cell__num">
-                      <span className="label" style={{ fontSize: 9.5, color: good ? "#86EFBC" : "#9CA6B2" }}>Rango IV</span>
-                      <span className={`rk-rank rk-cell__num-value ${good ? "rk-rank--good" : ""}`}>#{c.row.rank}</span>
+                      <span className="label" style={{ fontSize: 9.5, color: rankColor }}>Rango IV</span>
+                      <span className="rk-rank rk-cell__num-value" style={{ color: rankColor, display: "flex", alignItems: "center", gap: 6 }}>
+                        {tier && <Medal tier={tier} size={20} />}
+                        #{c.row.rank}
+                      </span>
                       <span className="rk-cost" style={{ fontSize: 12 }}>{c.row.pct.toFixed(1).replace(".", ",")} %</span>
                     </div>
                     <div className="rk-cell__num rk-cell__num--pv">
@@ -133,8 +159,12 @@ export function EntryDetail({
         ))}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 26, flexShrink: 0, fontFamily: "var(--font-mono)", fontSize: 11.5, color: "#A8B0BB" }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, flexShrink: 0, fontFamily: "var(--font-mono)", fontSize: 11.5, color: "#A8B0BB" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <Medal tier={1} size={13} /><Medal tier={2} size={13} /><Medal tier={3} size={13} />
+            #1, #2 y #3
+          </span>
           <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: "rgba(82,231,157,0.30)", boxShadow: "inset 0 0 0 1px #52E79D" }} />
             Rango IV 100 o mejor de 4.096

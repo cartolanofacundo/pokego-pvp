@@ -17,6 +17,16 @@
   --amber: #F8C066;
   --amber-text: #FAD190;
   --cyan: #6FE3F2;
+  /* Podio de IV: rango #1, #2 y #3 (ver .rk-podium--* más abajo). */
+  --gold-text: #F7D774;
+  --silver-text: #E6ECF3;
+  --bronze-text: #EDB186;
+  --gold-ring: rgba(244,201,94,0.62);
+  --silver-ring: rgba(214,224,236,0.58);
+  --bronze-ring: rgba(214,140,82,0.60);
+  --gold-hi: 255,215,110;
+  --silver-hi: 222,230,240;
+  --bronze-hi: 222,146,90;
   --font-display: var(--font-bricolage), 'Helvetica Neue', sans-serif;
   --font-ui: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
@@ -381,6 +391,8 @@ button:focus:not(:focus-visible) { outline: none; }
 .btn--box { height: calc(46 * var(--u)); gap: calc(10 * var(--u)); font-size: max(12px, calc(15 * var(--u))); background: rgba(255,255,255,0.13); }
 .btn--primary { background: var(--ink-1); color: #0B0D11; }
 .btn--ghost { background: transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14); color: var(--ink-2); }
+/* Acción destructiva confirmada (Borrar N): rojo lleno, no gris. */
+.btn--danger { background: var(--red); color: #1A0B0B; }
 .btn--cut {
   border-radius: 0;
   clip-path: polygon(0 0, 100% 0, 100% 100%, calc(10 * var(--u)) 100%, 0 calc(100% - calc(10 * var(--u))));
@@ -510,6 +522,32 @@ button:focus:not(:focus-visible) { outline: none; }
 .nav-link:hover { background: rgba(255,255,255,0.10); color: var(--ink-1); }
 .nav-link--current { background: rgba(255,255,255,0.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.20); color: var(--ink-1); }
 
+/* Menú mobile (900px o menos): reemplaza las tres pestañas por un botón que
+   despliega la lista, así la marca no se parte en dos líneas. */
+.nav-link-list { display: flex; align-items: center; gap: 4px; }
+.nav-menu-mobile { display: none; position: relative; }
+.nav-menu-mobile summary {
+  display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+  border-radius: 8px; color: var(--ink-2); list-style: none; cursor: pointer;
+}
+.nav-menu-mobile summary::-webkit-details-marker { display: none; }
+.nav-menu-mobile[open] summary { background: rgba(255,255,255,0.10); }
+.nav-menu-mobile__list {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; display: flex; flex-direction: column; gap: 2px;
+  min-width: 160px; padding: 6px; background: var(--surface); border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.10);
+}
+.nav-menu-mobile__item {
+  display: flex; align-items: center; height: 40px; padding: 0 12px; border-radius: 7px;
+  font-size: 15px; font-weight: 600; color: var(--ink-2); text-decoration: none;
+}
+.nav-menu-mobile__item:hover { background: rgba(255,255,255,0.08); }
+.nav-menu-mobile__item--current { color: var(--ink-1); background: rgba(255,255,255,0.10); }
+@media (max-width: 900px) {
+  .nav-link-list { display: none; }
+  .nav-menu-mobile { display: block; }
+}
+
 /* ---------- Rankeador ----------
    El rankeador vive dentro del mismo <Viewport> que el combate, así que
    comparte --u: todo achica o crece en la misma proporción. La excepción es
@@ -587,6 +625,41 @@ button:focus:not(:focus-visible) { outline: none; }
 .rk-cell--good { background: rgba(82,231,157,0.08); box-shadow: inset 0 0 0 1px rgba(82,231,157,0.30); }
 .rk-list-enter { animation: fichaEntra 160ms var(--ease) both; }
 
+/* ---------- Podio de IV: rango #1, #2 y #3 ----------
+   Del #4 al #100 sigue el verde (.rk-cell--good, .rk-chip--good,
+   .rk-card--good); del #101 para abajo, el gris. Nunca se aplica a celdas
+   sin rango ("Te pasaste" / "No llega" / "No entra"), aunque el rango
+   teórico sea #1. Cara de celda, chip y tarjeta comparten la misma receta;
+   la fila de tabla usa los mismos alfas ×0,6 para no gritar sobre una fila
+   entera. */
+.rk-podium--gold {
+  background: linear-gradient(135deg,
+    rgba(var(--gold-hi),0.24) 0%, rgba(var(--gold-hi),0.07) 42%,
+    rgba(var(--gold-hi),0.05) 58%, rgba(var(--gold-hi),0.17) 100%);
+  box-shadow: inset 0 0 0 1px var(--gold-ring), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.rk-podium--silver {
+  background: linear-gradient(135deg,
+    rgba(var(--silver-hi),0.24) 0%, rgba(var(--silver-hi),0.07) 42%,
+    rgba(var(--silver-hi),0.05) 58%, rgba(var(--silver-hi),0.17) 100%);
+  box-shadow: inset 0 0 0 1px var(--silver-ring), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.rk-podium--bronze {
+  background: linear-gradient(135deg,
+    rgba(var(--bronze-hi),0.24) 0%, rgba(var(--bronze-hi),0.07) 42%,
+    rgba(var(--bronze-hi),0.05) 58%, rgba(var(--bronze-hi),0.17) 100%);
+  box-shadow: inset 0 0 0 1px var(--bronze-ring), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.rk-podium-text--gold { color: var(--gold-text); }
+.rk-podium-text--silver { color: var(--silver-text); }
+.rk-podium-text--bronze { color: var(--bronze-text); }
+/* Fila de tabla: los mismos alfas al 60%, sobre toda la fila. */
+.rk-podium-row--gold td { background: linear-gradient(135deg, rgba(var(--gold-hi),0.144) 0%, rgba(var(--gold-hi),0.042) 42%, rgba(var(--gold-hi),0.03) 58%, rgba(var(--gold-hi),0.102) 100%); }
+.rk-podium-row--silver td { background: linear-gradient(135deg, rgba(var(--silver-hi),0.144) 0%, rgba(var(--silver-hi),0.042) 42%, rgba(var(--silver-hi),0.03) 58%, rgba(var(--silver-hi),0.102) 100%); }
+.rk-podium-row--bronze td { background: linear-gradient(135deg, rgba(var(--bronze-hi),0.144) 0%, rgba(var(--bronze-hi),0.042) 42%, rgba(var(--bronze-hi),0.03) 58%, rgba(var(--bronze-hi),0.102) 100%); }
+/* MEJOR sobre una cara de podio va en blanco, para no mezclar verde con metal. */
+.rk-tag--mejor.rk-tag--podium { background: rgba(255,255,255,0.16); color: #F2F3F5; }
+
 .rk-cell .rk-cost { white-space: normal; line-height: 1.45; }
 .rk-table th, .rk-table td { padding: 0 calc(10 * var(--u)); }
 
@@ -622,20 +695,19 @@ button:focus:not(:focus-visible) { outline: none; }
   .rk-detail--costs-auto .rk-costs-note { display: inline; }
 }
 
-/* Columna izquierda de Cargar: contenedor de tamaño (ancho y alto). Si no
-   entran los tres paneles con "Cargados" a 200 px (ventanas bajas, como una
-   MacBook), se compacta: sin barras de stats, sprite más chico y sin la
-   ayuda del campo de IV. Si igual no entra, la columna scrollea. */
-.rk-left { container: rk-left / size; }
+/* Columna izquierda de Cargar: alto natural, la página scrollea si los tres
+   paneles no entran en la ventana (nunca por dentro de la columna). A 1440
+   de ancho de pantalla o menos (~400px de columna, el mínimo de su
+   `clamp(360px, 27vw, 500px)`) se saca la ayuda del campo de IV, para no
+   competir con el resto del panel. */
+.rk-left { container: rk-left / inline-size; }
 .rk-field--iv input { font-size: clamp(22px, 7cqi, 32px); }
-@container rk-left (max-height: 800px) {
-  .rk-left .rk-species__stats, .rk-left .rk-iv-help { display: none; }
-  .rk-left .rk-species__sprite { width: 88px; height: 88px; }
-  .rk-left .rk-species__sprite img { width: 118px; height: 118px; margin: -15px; }
-  .rk-left .rk-panel { padding: 16px 20px; }
-  .rk-left .rk-field { height: 48px; }
-  .rk-left .rk-field--iv { height: 60px; }
+@container rk-left (max-width: 400px) {
+  .rk-left .rk-iv-help { display: none; }
 }
+/* Campo con dos lecturas posibles: anillo ámbar en vez del cian de foco,
+   para no formatear una lectura como si fuera la elegida. */
+.rk-field--ambiguous, .rk-field--ambiguous:focus-within { box-shadow: inset 0 0 0 2px #F8C066; }
 
 /* Tarjeta de especie (columna Cargar): contenedor propio, así el nombre, el
    sprite y las pastillas de anterior/siguiente se acomodan a su ancho. */
@@ -757,6 +829,18 @@ button:focus:not(:focus-visible) { outline: none; }
 .land-hero__lead { margin: 0; max-width: 760px; font-size: 21px; line-height: 1.5; color: var(--ink-2); }
 .land-hero__badges { font-family: var(--font-mono); font-size: 12px; line-height: 1.8; letter-spacing: 0.14em; color: var(--ink-4); text-align: center; }
 
+/* Combate y Rankeador en el celular: por debajo de 900px se ve el aviso en
+   vez de la herramienta (mínimo 1280 de ancho); ver ToolMobileNotice.tsx. */
+.tool-desktop { display: block; }
+.tool-mobile { display: none; }
+.tool-mobile__body { max-width: 480px; margin: 0 auto; padding: 24px 20px 40px; }
+.tool-mobile__back { display: inline-flex; margin-top: 20px; font-size: 14.5px; font-weight: 600; color: var(--ink-3); text-decoration: none; }
+.tool-mobile__back:hover { color: var(--ink-1); }
+@media (max-width: 900px) {
+  .tool-desktop { display: none; }
+  .tool-mobile { display: block; }
+}
+
 .land-mobile-banner { display: none; }
 .land-mobile-banner__title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; }
 .land-mobile-banner__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); }
@@ -783,7 +867,11 @@ button:focus:not(:focus-visible) { outline: none; }
 .land-card__hint { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-4); }
 .land-card__foot { display: block; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--ink-4); padding-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.10); }
 
-.land-sections { display: flex; flex-direction: column; gap: 128px; max-width: 1200px; margin: 96px auto 0; padding: 0 var(--land-gutter); }
+/* max-width incluye el padding lateral (box-sizing: border-box), así que
+   para que el contenido quede en 1200px (como .land-hero__inner) hay que
+   sumarle los dos gutters; si no, el contenido queda más angosto que el del
+   hero y arranca más adentro. */
+.land-sections { display: flex; flex-direction: column; gap: 128px; max-width: calc(1200px + 2 * var(--land-gutter)); margin: 96px auto 0; padding: 0 var(--land-gutter); }
 .land-section { display: flex; flex-direction: column; gap: 36px; }
 .land-section__head { display: flex; flex-direction: column; gap: 12px; }
 .land-section__eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; color: #9CA6B2; text-transform: uppercase; }
@@ -814,7 +902,7 @@ button:focus:not(:focus-visible) { outline: none; }
 
 .land-table { width: 100%; border-collapse: collapse; }
 .land-table caption { text-align: left; padding-bottom: 6px; font-size: 14px; color: var(--ink-3); }
-.land-table th, .land-table td { padding: 12px 8px; }
+.land-table th, .land-table td { padding: 12px 8px; white-space: nowrap; }
 .land-table thead tr { box-shadow: inset 0 -1px 0 rgba(255,255,255,0.16); }
 .land-table thead span { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em; color: var(--ink-4); text-transform: uppercase; }
 .land-table tbody tr { box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08); }
@@ -827,7 +915,7 @@ button:focus:not(:focus-visible) { outline: none; }
 .land-leagues tbody tr { box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08); }
 .land-leagues th[scope="row"] { font-size: 17px; font-weight: 600; }
 .land-leagues td.land-cap { font-family: var(--font-mono); font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
-.land-leagues td.land-note { font-size: 16px; line-height: 1.5; color: var(--ink-3); }
+.land-leagues td.land-note { font-size: 16px; line-height: 1.5; color: var(--ink-3); white-space: normal; }
 
 .land-faq { box-shadow: inset 0 1px 0 rgba(255,255,255,0.10); }
 .land-faq details { box-shadow: inset 0 -1px 0 rgba(255,255,255,0.10); }
@@ -844,7 +932,7 @@ button:focus:not(:focus-visible) { outline: none; }
 .land-source__desc { font-size: 14.5px; color: var(--ink-3); }
 .land-source__date { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; color: var(--ink-4); margin-top: 4px; }
 
-.land-footer { display: flex; flex-direction: column; gap: 18px; max-width: 1200px; margin-inline: auto; padding: 36px var(--land-gutter) 48px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.12); }
+.land-footer { display: flex; flex-direction: column; gap: 18px; max-width: calc(1200px + 2 * var(--land-gutter)); margin-inline: auto; padding: 36px var(--land-gutter) 48px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.12); }
 .land-footer__row { display: flex; flex-direction: row; justify-content: space-between; gap: 16px; }
 .land-footer__brand { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -0.03em; }
 .land-footer nav { display: flex; gap: 28px; flex-wrap: wrap; }

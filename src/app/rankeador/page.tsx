@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RankerApp } from "@/components/ranker/RankerApp";
+import { ToolMobileNotice } from "@/components/ToolMobileNotice";
 import { APP_NAME, SITE_URL } from "@/lib/site";
 
 const title = `Ranking de IV por liga para Pokémon GO · ${APP_NAME}`;
@@ -13,5 +14,12 @@ export const metadata: Metadata = {
 };
 
 export default function RankeadorPage() {
-  return <RankerApp />;
+  return (
+    <>
+      <ToolMobileNotice section="rankeador" path="/rankeador/" />
+      <div className="tool-desktop">
+        <RankerApp />
+      </div>
+    </>
+  );
 }
