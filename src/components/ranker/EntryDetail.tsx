@@ -46,9 +46,11 @@ export function EntryDetail({
   // ataque) en `.rk-costs--*`: el ajuste Costos los muestra, los oculta o
   // ("auto") los oculta solo cuando las celdas quedan angostas (container
   // queries en globals.css). Sin scroll interno: el panel crece con su
-  // contenido y es la página la que scrollea.
+  // contenido y es la página la que scrollea. Sin `align-self`: el padre es
+  // una columna flex, y ahí `align-self` achica el ancho (no el alto) a su
+  // contenido, que en un contenedor `inline-size` es 0.
   return (
-    <div className={`rk-panel rk-detail rk-detail--costs-${settings.costs}`} style={{ minWidth: 0, gap: 14, alignSelf: "flex-start" }}>
+    <div className={`rk-panel rk-detail rk-detail--costs-${settings.costs}`} style={{ minWidth: 0, gap: 14 }}>
       <span className="panel__edge" style={{ left: 18 }} />
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexShrink: 0, flexWrap: "wrap", gap: 10 }}>
         <span style={{ display: "flex", alignItems: "baseline", gap: 18, minWidth: 0 }}>

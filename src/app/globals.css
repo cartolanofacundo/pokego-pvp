@@ -625,41 +625,6 @@ button:focus:not(:focus-visible) { outline: none; }
 .rk-cell--good { background: rgba(82,231,157,0.08); box-shadow: inset 0 0 0 1px rgba(82,231,157,0.30); }
 .rk-list-enter { animation: fichaEntra 160ms var(--ease) both; }
 
-/* ---------- Podio de IV: rango #1, #2 y #3 ----------
-   Del #4 al #100 sigue el verde (.rk-cell--good, .rk-chip--good,
-   .rk-card--good); del #101 para abajo, el gris. Nunca se aplica a celdas
-   sin rango ("Te pasaste" / "No llega" / "No entra"), aunque el rango
-   teórico sea #1. Cara de celda, chip y tarjeta comparten la misma receta;
-   la fila de tabla usa los mismos alfas ×0,6 para no gritar sobre una fila
-   entera. */
-.rk-podium--gold {
-  background: linear-gradient(135deg,
-    rgba(var(--gold-hi),0.24) 0%, rgba(var(--gold-hi),0.07) 42%,
-    rgba(var(--gold-hi),0.05) 58%, rgba(var(--gold-hi),0.17) 100%);
-  box-shadow: inset 0 0 0 1px var(--gold-ring), inset 0 1px 0 rgba(255,255,255,0.18);
-}
-.rk-podium--silver {
-  background: linear-gradient(135deg,
-    rgba(var(--silver-hi),0.24) 0%, rgba(var(--silver-hi),0.07) 42%,
-    rgba(var(--silver-hi),0.05) 58%, rgba(var(--silver-hi),0.17) 100%);
-  box-shadow: inset 0 0 0 1px var(--silver-ring), inset 0 1px 0 rgba(255,255,255,0.18);
-}
-.rk-podium--bronze {
-  background: linear-gradient(135deg,
-    rgba(var(--bronze-hi),0.24) 0%, rgba(var(--bronze-hi),0.07) 42%,
-    rgba(var(--bronze-hi),0.05) 58%, rgba(var(--bronze-hi),0.17) 100%);
-  box-shadow: inset 0 0 0 1px var(--bronze-ring), inset 0 1px 0 rgba(255,255,255,0.18);
-}
-.rk-podium-text--gold { color: var(--gold-text); }
-.rk-podium-text--silver { color: var(--silver-text); }
-.rk-podium-text--bronze { color: var(--bronze-text); }
-/* Fila de tabla: los mismos alfas al 60%, sobre toda la fila. */
-.rk-podium-row--gold td { background: linear-gradient(135deg, rgba(var(--gold-hi),0.144) 0%, rgba(var(--gold-hi),0.042) 42%, rgba(var(--gold-hi),0.03) 58%, rgba(var(--gold-hi),0.102) 100%); }
-.rk-podium-row--silver td { background: linear-gradient(135deg, rgba(var(--silver-hi),0.144) 0%, rgba(var(--silver-hi),0.042) 42%, rgba(var(--silver-hi),0.03) 58%, rgba(var(--silver-hi),0.102) 100%); }
-.rk-podium-row--bronze td { background: linear-gradient(135deg, rgba(var(--bronze-hi),0.144) 0%, rgba(var(--bronze-hi),0.042) 42%, rgba(var(--bronze-hi),0.03) 58%, rgba(var(--bronze-hi),0.102) 100%); }
-/* MEJOR sobre una cara de podio va en blanco, para no mezclar verde con metal. */
-.rk-tag--mejor.rk-tag--podium { background: rgba(255,255,255,0.16); color: #F2F3F5; }
-
 .rk-cell .rk-cost { white-space: normal; line-height: 1.45; }
 .rk-table th, .rk-table td { padding: 0 calc(10 * var(--u)); }
 
@@ -795,6 +760,43 @@ button:focus:not(:focus-visible) { outline: none; }
 .rk-league-btn[aria-pressed="true"], .rk-league-btn[aria-checked="true"] { background: rgba(255,255,255,0.17); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.38); color: var(--ink-1); }
 .rk-league-btn__count { font-family: var(--font-mono); font-size: max(9px, calc(12.5 * var(--u))); font-weight: 600; color: var(--ink-4); }
 .rk-league-btn[aria-pressed="true"] .rk-league-btn__count, .rk-league-btn[aria-checked="true"] .rk-league-btn__count { color: var(--green-text); }
+
+/* ---------- Podio de IV: rango #1, #2 y #3 ----------
+   Del #4 al #100 sigue el verde (.rk-cell--good, .rk-chip--good,
+   .rk-card--good); del #101 para abajo, el gris. Nunca se aplica a celdas
+   sin rango ("Te pasaste" / "No llega" / "No entra"), aunque el rango
+   teórico sea #1. Cara de celda, chip y tarjeta comparten la misma receta;
+   la fila de tabla usa los mismos alfas ×0,6 para no gritar sobre una fila
+   entera. Va después de .rk-cell, .rk-chip y .rk-card: con la misma
+   especificidad, la regla que se define última gana el fondo y el anillo. */
+.rk-podium--gold {
+  background: linear-gradient(135deg,
+    rgba(var(--gold-hi),0.24) 0%, rgba(var(--gold-hi),0.07) 42%,
+    rgba(var(--gold-hi),0.05) 58%, rgba(var(--gold-hi),0.17) 100%);
+  box-shadow: inset 0 0 0 1px var(--gold-ring), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.rk-podium--silver {
+  background: linear-gradient(135deg,
+    rgba(var(--silver-hi),0.24) 0%, rgba(var(--silver-hi),0.07) 42%,
+    rgba(var(--silver-hi),0.05) 58%, rgba(var(--silver-hi),0.17) 100%);
+  box-shadow: inset 0 0 0 1px var(--silver-ring), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.rk-podium--bronze {
+  background: linear-gradient(135deg,
+    rgba(var(--bronze-hi),0.24) 0%, rgba(var(--bronze-hi),0.07) 42%,
+    rgba(var(--bronze-hi),0.05) 58%, rgba(var(--bronze-hi),0.17) 100%);
+  box-shadow: inset 0 0 0 1px var(--bronze-ring), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.rk-podium-text--gold { color: var(--gold-text); }
+.rk-podium-text--silver { color: var(--silver-text); }
+.rk-podium-text--bronze { color: var(--bronze-text); }
+/* Fila de tabla: los mismos alfas al 60%, pintados en el `tr` (no en cada
+   `td`), así el degradé es uno solo a lo largo de toda la fila. */
+.rk-podium-row--gold { background: linear-gradient(135deg, rgba(var(--gold-hi),0.144) 0%, rgba(var(--gold-hi),0.042) 42%, rgba(var(--gold-hi),0.03) 58%, rgba(var(--gold-hi),0.102) 100%); }
+.rk-podium-row--silver { background: linear-gradient(135deg, rgba(var(--silver-hi),0.144) 0%, rgba(var(--silver-hi),0.042) 42%, rgba(var(--silver-hi),0.03) 58%, rgba(var(--silver-hi),0.102) 100%); }
+.rk-podium-row--bronze { background: linear-gradient(135deg, rgba(var(--bronze-hi),0.144) 0%, rgba(var(--bronze-hi),0.042) 42%, rgba(var(--bronze-hi),0.03) 58%, rgba(var(--bronze-hi),0.102) 100%); }
+/* MEJOR sobre una cara de podio va en blanco, para no mezclar verde con metal. */
+.rk-tag--mejor.rk-tag--podium { background: rgba(255,255,255,0.16); color: #F2F3F5; }
 
 /* ---------- Landing / Inicio ----------
    Un solo contenedor lógico (ancho de contenido 1200px + gutter variable),
